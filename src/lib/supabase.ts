@@ -36,9 +36,13 @@ export function publicClient(env?: EnvBag): SupabaseClient {
 }
 
 export function adminClient(env?: EnvBag): SupabaseClient {
+  // Try new secret key format first, fall back to legacy service role key
+  let key: string;
+  try { key = readEnv(env, 'SUPABASE_SECRET_KEY'); }
+  catch { key = readEnv(env, 'SUPABASE_SERVICE_ROLE_KEY'); }
   return createClient(
     readEnv(env, 'PUBLIC_SUPABASE_URL'),
-    readEnv(env, 'SUPABASE_SERVICE_ROLE_KEY'),
+    key,
     { auth: { persistSession: false } }
   );
 }
