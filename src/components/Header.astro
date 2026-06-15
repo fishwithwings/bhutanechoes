@@ -7,7 +7,6 @@ const links = [
   { href: '/tours', label: 'Tours' },
   { href: '/guides', label: 'Guides' },
   { href: '/about', label: 'How it works' },
-  { href: '/for-guides', label: 'Become a guide' },
 ];
 ---
 
@@ -31,11 +30,33 @@ const links = [
     </div>
 
     <div class="flex items-center gap-2">
-      <a id="nav-dashboard" href="/dashboard" class="hidden btn-ghost sm:inline-flex">Dashboard</a>
-      <a id="nav-account" href="/account" class="hidden btn-ghost sm:inline-flex">My account</a>
-      <a id="nav-messages" href="/chat" class="hidden btn-ghost sm:inline-flex">Messages</a>
+      <!-- Logged-out -->
       <a id="nav-signin" href="/login" class="btn-ghost sm:inline-flex">Sign in</a>
-      <button id="nav-signout" class="hidden btn-ghost sm:inline-flex">Sign out</button>
+
+      <!-- Logged-in: avatar dropdown -->
+      <div id="nav-user" class="hidden relative">
+        <button id="user-btn" class="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium text-forest hover:bg-forest/5 border border-forest/15 transition-colors">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke-linecap="round"/></svg>
+          <span id="user-name" class="max-w-[80px] truncate"></span>
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" stroke-linecap="round"/></svg>
+        </button>
+        <div id="user-menu" class="hidden absolute right-0 mt-2 w-48 rounded-xl border border-forest/10 bg-white shadow-lg py-1 z-50">
+          <a id="dd-main" href="/account" class="flex items-center gap-2 px-4 py-2.5 text-sm text-forest hover:bg-forest/5">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 9h6M9 13h4" stroke-linecap="round"/></svg>
+            <span id="dd-main-label">My account</span>
+          </a>
+          <a href="/chat" class="flex items-center gap-2 px-4 py-2.5 text-sm text-forest hover:bg-forest/5">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke-linecap="round"/></svg>
+            Messages
+          </a>
+          <div class="my-1 border-t border-forest/8"></div>
+          <button id="nav-signout" class="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-forest/70 hover:bg-forest/5 hover:text-forest">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round"/></svg>
+            Sign out
+          </button>
+        </div>
+      </div>
+
       <a href="/tours" class="btn-gold">Book a tour</a>
 
       <button id="menu-btn" class="md:hidden p-2 text-forest" aria-label="Menu">
@@ -46,51 +67,74 @@ const links = [
     </div>
   </nav>
 
+  <!-- Mobile menu -->
   <div id="mobile-menu" class="hidden border-t border-forest/10 bg-cream md:hidden">
     <div class="container-x flex flex-col py-3">
       {links.map((l) => (
         <a href={l.href} class="rounded-lg px-3 py-2.5 text-sm font-medium text-forest/80 hover:bg-forest/5">{l.label}</a>
       ))}
+      <a href="/for-guides" class="rounded-lg px-3 py-2.5 text-sm font-medium text-forest/80 hover:bg-forest/5">Become a guide</a>
+      <div class="my-1 border-t border-forest/8"></div>
       <a id="mobile-signin" href="/login" class="rounded-lg px-3 py-2.5 text-sm font-medium text-forest/80 hover:bg-forest/5">Sign in</a>
+      <a id="mobile-main" href="/account" class="hidden rounded-lg px-3 py-2.5 text-sm font-medium text-forest/80 hover:bg-forest/5">My account</a>
+      <a href="/chat" id="mobile-messages" class="hidden rounded-lg px-3 py-2.5 text-sm font-medium text-forest/80 hover:bg-forest/5">Messages</a>
       <button id="mobile-signout" class="hidden rounded-lg px-3 py-2.5 text-sm font-medium text-forest/80 hover:bg-forest/5 text-left">Sign out</button>
     </div>
   </div>
 </header>
 
 <script>
-  const btn = document.getElementById('menu-btn');
-  const menu = document.getElementById('mobile-menu');
-  btn?.addEventListener('click', () => menu?.classList.toggle('hidden'));
+  const menuBtn = document.getElementById('menu-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+  menuBtn?.addEventListener('click', () => mobileMenu?.classList.toggle('hidden'));
 
-  // Show Dashboard/Sign out vs Sign in based on session
+  // Dropdown toggle
+  const userBtn  = document.getElementById('user-btn');
+  const userMenu = document.getElementById('user-menu');
+  userBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    userMenu?.classList.toggle('hidden');
+  });
+  document.addEventListener('click', () => userMenu?.classList.add('hidden'));
+
   try {
     const { browserClient } = await import('../lib/supabase-browser');
     const sb = browserClient();
     const { data: { session } } = await sb.auth.getSession();
+
     if (session) {
       const { data: profile } = await sb.from('profiles').select('role').eq('id', session.user.id).maybeSingle();
       const role = profile?.role;
-      document.getElementById('nav-signin')?.classList.add('hidden');
-      document.getElementById('mobile-signin')?.classList.add('hidden');
-      if (role === 'guide' || role === 'admin') {
-        document.getElementById('nav-dashboard')?.classList.remove('hidden');
-      } else {
-        document.getElementById('nav-account')?.classList.remove('hidden');
-      }
-      document.getElementById('nav-messages')?.classList.remove('hidden');
-      document.getElementById('nav-signout')?.classList.remove('hidden');
-      document.getElementById('mobile-signout')?.classList.remove('hidden');
-    }
+      const name = session.user.user_metadata?.full_name ?? session.user.email?.split('@')[0] ?? 'Account';
 
-    document.getElementById('nav-signout')?.addEventListener('click', async () => {
-      await sb.auth.signOut();
-      window.location.href = '/';
-    });
-    document.getElementById('mobile-signout')?.addEventListener('click', async () => {
-      await sb.auth.signOut();
-      window.location.href = '/';
-    });
+      // Hide sign in, show user dropdown
+      document.getElementById('nav-signin')?.classList.add('hidden');
+      document.getElementById('nav-user')?.classList.remove('hidden');
+      const nameEl = document.getElementById('user-name');
+      if (nameEl) nameEl.textContent = name;
+
+      // Set main link based on role
+      const ddMain = document.getElementById('dd-main') as HTMLAnchorElement;
+      const ddLabel = document.getElementById('dd-main-label');
+      const mobileMain = document.getElementById('mobile-main') as HTMLAnchorElement;
+      if (role === 'guide' || role === 'admin') {
+        if (ddMain) ddMain.href = '/dashboard';
+        if (ddLabel) ddLabel.textContent = 'Dashboard';
+        if (mobileMain) { mobileMain.href = '/dashboard'; mobileMain.textContent = 'Dashboard'; }
+      }
+
+      // Mobile
+      document.getElementById('mobile-signin')?.classList.add('hidden');
+      document.getElementById('mobile-main')?.classList.remove('hidden');
+      document.getElementById('mobile-messages')?.classList.remove('hidden');
+      document.getElementById('mobile-signout')?.classList.remove('hidden');
+
+      // Sign out
+      const signout = async () => { await sb.auth.signOut(); window.location.href = '/'; };
+      document.getElementById('nav-signout')?.addEventListener('click', signout);
+      document.getElementById('mobile-signout')?.addEventListener('click', signout);
+    }
   } catch {
-    document.getElementById('nav-signin')?.classList.remove('hidden');
+    // leave sign in visible
   }
 </script>
