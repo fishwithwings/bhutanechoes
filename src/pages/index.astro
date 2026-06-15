@@ -9,7 +9,9 @@ const env = (Astro.locals as any).runtime?.env;
 const [tours, counts, featuredReviews] = await Promise.all([
   getTours(env), getGuideCounts(env), getFeaturedReviews(env),
 ]);
-const featured = tours.slice(0, 3);
+const HIKE_SLUGS = ['tigers-nest-hike', 'druk-path-trek', 'jumolhari-trek'];
+const featuredTours = tours.filter(t => !HIKE_SLUGS.includes(t.slug)).slice(0, 3);
+const featuredHikes = tours.filter(t => HIKE_SLUGS.includes(t.slug));
 
 const steps = [
   { n: '1', t: 'Choose your tour', d: "Browse 11 all-inclusive Bhutan packages, from the Tiger's Nest day hike to the 13-day Jumolhari trek." },
@@ -93,13 +95,33 @@ const jsonLd = {
         <p class="eyebrow">Signature journeys</p>
         <h2 class="mt-2 font-serif text-3xl font-bold sm:text-4xl">Featured tours</h2>
       </div>
-      <a href="/tours" class="btn-ghost hidden sm:inline-flex">View all →</a>
+      <a href="/tours#tours" class="btn-ghost hidden sm:inline-flex">View all tours →</a>
     </div>
     <div class="mt-10 grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
-      {featured.map((tour) => <TourCard tour={tour} guideCount={counts[tour.id]} />)}
+      {featuredTours.map((tour) => <TourCard tour={tour} guideCount={counts[tour.id]} />)}
     </div>
     <div class="mt-8 text-center sm:hidden">
-      <a href="/tours" class="btn-outline">View all tours</a>
+      <a href="/tours#tours" class="btn-outline">View all tours</a>
+    </div>
+  </section>
+
+  <!-- Featured hikes -->
+  <section class="bg-cream-dark">
+    <div class="container-x py-20">
+      <div class="flex items-end justify-between">
+        <div>
+          <p class="eyebrow">On foot</p>
+          <h2 class="mt-2 font-serif text-3xl font-bold sm:text-4xl">Hikes &amp; treks</h2>
+          <p class="mt-2 max-w-xl text-forest/70">From a single-day climb to Tiger's Nest to the 13-day Jumolhari expedition — Bhutan's trails with a guide who knows every switchback.</p>
+        </div>
+        <a href="/tours#hikes" class="btn-ghost hidden sm:inline-flex">View all hikes →</a>
+      </div>
+      <div class="mt-10 grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
+        {featuredHikes.map((tour) => <TourCard tour={tour} guideCount={counts[tour.id]} />)}
+      </div>
+      <div class="mt-8 text-center sm:hidden">
+        <a href="/tours#hikes" class="btn-outline">View all hikes</a>
+      </div>
     </div>
   </section>
 

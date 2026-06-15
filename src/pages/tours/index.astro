@@ -66,10 +66,11 @@ const difficulties = ['easy', 'moderate', 'challenging', 'strenuous'];
 
   <section class="container-x py-14">
     <!-- Tours section -->
-    <div id="section-tours">
-      <h2 class="font-serif text-2xl font-semibold text-forest mb-7">Cultural tours &amp; day trips</h2>
+    <div id="tours">
+      <h2 class="font-serif text-2xl font-semibold text-forest mb-1">Tours</h2>
+      <p class="text-forest/60 text-sm mb-7">Cultural journeys, day trips and multi-day touring packages.</p>
       <div id="tours-grid" class="grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
-        {tours.filter(t => !t.slug.includes('trek')).map((tour) => (
+        {tours.filter(t => !['tigers-nest-hike','druk-path-trek','jumolhari-trek'].includes(t.slug)).map((tour) => (
           <div
             class="tour-card"
             data-slug={tour.slug}
@@ -87,11 +88,12 @@ const difficulties = ['easy', 'moderate', 'challenging', 'strenuous'];
       <p id="no-results-tours" class="hidden mt-8 text-sm text-forest/50">No tours match your filters.</p>
     </div>
 
-    <!-- Treks section -->
-    <div id="section-treks" class="mt-16">
-      <h2 class="font-serif text-2xl font-semibold text-forest mb-7">Multi-day treks</h2>
+    <!-- Hikes section -->
+    <div id="hikes" class="mt-16 scroll-mt-24">
+      <h2 class="font-serif text-2xl font-semibold text-forest mb-1">Hikes &amp; treks</h2>
+      <p class="text-forest/60 text-sm mb-7">On-foot adventures from a half-day climb to a 13-day Himalayan expedition.</p>
       <div id="treks-grid" class="grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
-        {tours.filter(t => t.slug.includes('trek')).map((tour) => (
+        {tours.filter(t => ['tigers-nest-hike','druk-path-trek','jumolhari-trek'].includes(t.slug)).map((tour) => (
           <div
             class="tour-card"
             data-slug={tour.slug}
@@ -106,7 +108,7 @@ const difficulties = ['easy', 'moderate', 'challenging', 'strenuous'];
           </div>
         ))}
       </div>
-      <p id="no-results-treks" class="hidden mt-8 text-sm text-forest/50">No treks match your filters.</p>
+      <p id="no-results-treks" class="hidden mt-8 text-sm text-forest/50">No hikes match your filters.</p>
     </div>
 
     <p id="no-results" class="hidden mt-16 text-center text-forest/55">No results match your filters. <button id="clear-all" class="underline">Clear all</button></p>
