@@ -15,13 +15,8 @@ export const prerender = false;
     </div>
 
     <div id="chat-ui" class="hidden flex flex-col flex-1 min-h-0">
-      <!-- Header -->
       <div id="chat-header" class="card p-4 flex items-center gap-3 mb-4 flex-none"></div>
-
-      <!-- Messages -->
       <div id="messages" class="flex-1 overflow-y-auto space-y-3 pr-1 mb-4"></div>
-
-      <!-- Input -->
       <form id="msg-form" class="flex gap-2 flex-none">
         <input id="msg-input" class="input flex-1" placeholder="Type a message…" autocomplete="off" required />
         <button type="submit" class="btn-gold px-5">Send</button>
@@ -32,36 +27,40 @@ export const prerender = false;
 
 <script>
   import { browserClient } from '../../lib/supabase-browser';
-  const sb = browserClient();
 
-  const convId  = window.location.pathname.split('/').pop()!;
-  const loading = document.getElementById('loading')!;
-  const gate    = document.getElementById('gate')!;
-  const chatUi  = document.getElementById('chat-ui')!;
-  const header  = document.getElementById('chat-header')!;
-  const msgsEl  = document.getElementById('messages')!;
-  const form    = document.getElementById('msg-form') as HTMLFormElement;
-  const input   = document.getElementById('msg-input') as HTMLInputElement;
+  async function init() {
+    const sb = browserClient();
+    const convId  = window.location.pathname.split('/').pop()!;
+    const loading = document.getElementById('loading')!;
+    const gate    = document.getElementById('gate')!;
+    const chatUi  = document.getElementById('chat-ui')!;
+    const header  = document.getElementById('chat-header')!;
+    const msgsEl  = document.getElementById('messages')!;
+    const form    = document.getElementById('msg-form') as HTMLFormElement;
+    const input   = document.getElementById('msg-input') as HTMLInputElement;
 
-  const { data: { user } } = await sb.auth.getUser();
+    const { data: { user } } = await sb.auth.getUser();
 
-  if (!user) {
-    loading.classList.add('hidden');
-    gate.classList.remove('hidden');
-  } else {
-    // Load conversation
+    if (!user) {
+      loading.classList.add('hidden');
+      gate.classList.remove('hidden');
+      return;
+    }
+
     const { data: convo } = await sb
       .from('conversations')
-      .select(`id, tour_slug, guide:guide_id(id, name, photo_url, user_id)`)
+      .select('id, tour_slug, guide:guide_id(id, name, photo_url, user_id)')
       .eq('id', convId)
       .maybeSingle();
 
     loading.classList.add('hidden');
+    chatUi.classList.remove('hidden');
 
     if (!convo) {
-      msgsEl.innerHTML = '<p class="text-center text-forest/50">Conversation not found.</p>';
-      chatUi.classList.remove('hidden');
-    } else {
+      msgsEl.innerHTML = '<p class="text-center text-forest/50 py-8">Conversation not found.</p>';
+      return;
+    }
+
     const guide = convo.guide as any;
     const isGuide = guide?.user_id === user.id;
     const otherName = isGuide ? 'Guest' : (guide?.name ?? 'Guide');
@@ -75,8 +74,6 @@ export const prerender = false;
         ${tourLabel ? `<p class="text-xs text-forest/50 capitalize">${tourLabel}</p>` : ''}
       </div>`;
 
-    chatUi.classList.remove('hidden');
-
     function renderMsg(m: any) {
       const mine = m.sender_id === user!.id;
       const time = new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -88,7 +85,6 @@ export const prerender = false;
       </div>`;
     }
 
-    // Load existing messages
     const { data: existing } = await sb
       .from('messages')
       .select('*')
@@ -98,7 +94,6 @@ export const prerender = false;
     msgsEl.innerHTML = (existing ?? []).map(renderMsg).join('');
     msgsEl.scrollTop = msgsEl.scrollHeight;
 
-    // Subscribe to new messages
     sb.channel(`chat:${convId}`)
       .on('postgres_changes', {
         event: 'INSERT',
@@ -111,18 +106,14 @@ export const prerender = false;
       })
       .subscribe();
 
-    // Send message
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const body = input.value.trim();
       if (!body) return;
       input.value = '';
-      await sb.from('messages').insert({
-        conversation_id: convId,
-        sender_id: user.id,
-        body,
-      });
+      await sb.from('messages').insert({ conversation_id: convId, sender_id: user.id, body });
     });
-    } // end convo else
-  } // end user else
+  }
+
+  init();
 </script>
