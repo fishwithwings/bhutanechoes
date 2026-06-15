@@ -31,7 +31,8 @@ const links = [
 
     <div class="flex items-center gap-2">
       <!-- Logged-out -->
-      <a id="nav-signin" href="/login" class="btn-ghost sm:inline-flex">Sign in</a>
+      <a id="nav-signin" href="/login" class="hidden btn-ghost sm:inline-flex">Sign in</a>
+      <a id="nav-signup" href="/login#signup" class="hidden btn-ghost sm:inline-flex">Create account</a>
 
       <!-- Logged-in: avatar dropdown -->
       <div id="nav-user" class="hidden relative">
@@ -102,7 +103,10 @@ const links = [
     const sb = browserClient();
     const { data: { session } } = await sb.auth.getSession();
 
-    if (session) {
+    if (!session) {
+      document.getElementById('nav-signin')?.classList.remove('hidden');
+      document.getElementById('nav-signup')?.classList.remove('hidden');
+    } else if (session) {
       const { data: profile } = await sb.from('profiles').select('role').eq('id', session.user.id).maybeSingle();
       const role = profile?.role;
       const name = session.user.user_metadata?.full_name ?? session.user.email?.split('@')[0] ?? 'Account';
@@ -135,6 +139,7 @@ const links = [
       document.getElementById('mobile-signout')?.addEventListener('click', signout);
     }
   } catch {
-    // leave sign in visible
+    document.getElementById('nav-signin')?.classList.remove('hidden');
+    document.getElementById('nav-signup')?.classList.remove('hidden');
   }
 </script>
