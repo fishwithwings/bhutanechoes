@@ -18,12 +18,22 @@ export const GET: APIRoute = async ({ locals }) => {
 
   const phobjikha = tours.find(t => t.slug === 'phobjikha-valley-tour');
 
+  // Also query tiers and tours table directly
+  const { publicClient } = await import('../../lib/supabase');
+  const client = publicClient(env);
+  const { data: tiersData, error: tiersError } = await client
+    .from('tour_tiers').select('tour_id, price_cents').limit(5);
+  const { data: tourRow } = await client
+    .from('tours').select('slug, min_price_cents').eq('slug', 'phobjikha-valley-tour').maybeSingle();
+
   return new Response(JSON.stringify({
     hasUrl,
     hasKey,
-    envUrl: env?.PUBLIC_SUPABASE_URL ?? null,
     tourCount: tours.length,
     phobjikha_min_price: phobjikha?.min_price_cents ?? null,
+    phobjikha_db_row: tourRow,
+    tiers_sample: tiersData,
+    tiers_error: tiersError?.message ?? null,
     error,
   }, null, 2), { headers: { 'Content-Type': 'application/json' } });
 };
