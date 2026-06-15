@@ -69,9 +69,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
     years_experience: years, status: 'pending',
   });
   if (gErr) {
-    // roll back the auth user so they can retry cleanly
     await supabase.auth.admin.deleteUser(userId);
-    return bad('Could not create guide profile. Please try again.', 500);
+    return bad(`Could not create guide profile: ${gErr.message}`, 500);
   }
 
   return new Response(JSON.stringify({ ok: true }), {
