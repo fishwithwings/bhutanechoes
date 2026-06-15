@@ -3,7 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import TourCard from '../../components/TourCard.astro';
 import { getTours, getGuideCounts } from '../../lib/data';
 
-export const prerender = true;
+export const prerender = false;
 
 const env = (Astro.locals as any).runtime?.env;
 const tours = await getTours(env);
