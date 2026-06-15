@@ -113,8 +113,9 @@ if (minPrice && maxPrice) tourJsonLd["offers"] = {
       <!-- ── Itinerary ────────────────────────────────────────────────── -->
       {tour.itinerary && tour.itinerary.length > 0 && (
         <div class="mt-12">
-          <h2 class="font-serif text-2xl font-semibold">Day-by-day itinerary</h2>
-          <div class="mt-5 space-y-3" id="itinerary-list">
+          <h2 class="font-serif text-2xl font-semibold">Sample day-by-day itinerary</h2>
+          <p class="mt-1 mb-5 text-sm text-forest/55">Your guide may adjust this based on conditions and your preferences.</p>
+          <div class="space-y-3" id="itinerary-list">
             {tour.itinerary.map((day) => (
               <details class="group rounded-2xl border border-forest/12 bg-white open:shadow-sm transition-shadow">
                 <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 select-none">
