@@ -48,12 +48,19 @@ export const prerender = false;
             <p class="mt-1 text-xs text-forest/45">Min 8 characters</p>
           </div>
           <p id="signup-err" class="hidden rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"></p>
-          <div id="signup-success" class="hidden rounded-lg bg-green-50 px-4 py-3 text-sm text-green-800">
-            Account created! Check your email to confirm, then sign in.
-          </div>
           <button type="submit" id="signup-btn" class="btn-primary w-full">Create account</button>
         </form>
-        <p class="mt-5 text-center text-sm text-forest/60">
+
+        <div id="signup-success" class="hidden text-center py-4">
+          <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+            <svg width="24" height="24" fill="none" stroke="#16a34a" stroke-width="2.5"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <h2 class="mt-3 font-serif text-xl font-bold">Check your email</h2>
+          <p class="mt-2 text-sm text-forest/65">We sent a confirmation link to your email address. Click it to activate your account, then come back to sign in.</p>
+          <button id="back-to-signin" class="btn-outline mt-5 w-full">Back to sign in</button>
+        </div>
+
+        <p id="signup-footer" class="mt-5 text-center text-sm text-forest/60">
           Want to guide? <a href="/register" class="font-medium text-gold-dark hover:underline">Apply as a guide instead</a>
         </p>
       </div>
@@ -141,11 +148,16 @@ export const prerender = false;
       });
       if (error) throw error;
       signupForm.classList.add('hidden');
+      document.getElementById('signup-footer')!.classList.add('hidden');
       signupSuccess.classList.remove('hidden');
     } catch (e: any) {
       signupErr.textContent = e.message ?? 'Sign up failed.';
       signupErr.classList.remove('hidden');
       signupBtn.disabled = false; signupBtn.textContent = 'Create account';
     }
+  });
+
+  document.getElementById('back-to-signin')?.addEventListener('click', () => {
+    tabSignin.click();
   });
 </script>
