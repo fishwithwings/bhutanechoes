@@ -1,6 +1,6 @@
 ---
 import type { Tour } from '../lib/types';
-import { priceRange, formatDuration, difficultyLabel } from '../lib/format';
+import { formatMoney, formatDuration, difficultyLabel } from '../lib/format';
 
 interface Props { tour: Tour; guideCount?: number; }
 const { tour, guideCount } = Astro.props;
@@ -27,8 +27,8 @@ const { tour, guideCount } = Astro.props;
     <p class="mt-2 line-clamp-2 text-sm text-forest/65">{tour.summary}</p>
     <div class="mt-4 flex items-end justify-between border-t border-forest/8 pt-4">
       <div>
-        <p class="text-[11px] uppercase tracking-wide text-forest/45">From</p>
-        <p class="font-semibold text-forest">{priceRange(tour.min_price_cents, tour.max_price_cents)}
+        <p class="text-[11px] uppercase tracking-wide text-forest/45">Starting from</p>
+        <p class="font-semibold text-forest">{formatMoney(tour.min_price_cents)}
           <span class="text-xs font-normal text-forest/50">/ person</span>
         </p>
       </div>

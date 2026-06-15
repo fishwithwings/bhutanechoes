@@ -28,8 +28,9 @@ const tierBadge: Record<string, string> = {
   luxury:  'bg-amber-100 text-amber-800',
 };
 
-const minPrice = tiers.length ? Math.min(...tiers.map(t => t.price_min_cents)) / 100 : null;
-const maxPrice = tiers.length ? Math.max(...tiers.map(t => t.price_max_cents)) / 100 : null;
+const sortedTiers = [...tiers].sort((a, b) => a.price_cents - b.price_cents);
+const minPrice = sortedTiers.length ? sortedTiers[0].price_cents / 100 : null;
+const maxPrice = sortedTiers.length ? Math.max(...sortedTiers.map(t => t.price_cents)) / 100 : null;
 
 const tourJsonLd: Record<string, unknown> = {
   "@context": "https://schema.org",
@@ -268,7 +269,7 @@ if (minPrice && maxPrice) tourJsonLd["offers"] = {
       <div class="card p-6">
         <p class="eyebrow">Starting from</p>
         <p id="aside-price" class="mt-1 font-serif text-3xl font-bold text-forest">
-          {tiers[0] ? formatMoney(tiers[0].price_cents) : '—'}
+          {sortedTiers[0] ? formatMoney(sortedTiers[0].price_cents) : '—'}
         </p>
         <p class="text-xs text-forest/50">per person · fully inclusive</p>
 
