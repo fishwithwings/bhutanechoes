@@ -21,25 +21,78 @@ export const prerender = false;
     </div>
 
     <form id="reg-form" class="mt-8 space-y-5">
-      <div class="grid gap-5 sm:grid-cols-2">
-        <div><label class="label" for="name">Full name</label><input class="input" id="name" name="name" required /></div>
-        <div><label class="label" for="phone">Phone</label><input class="input" id="phone" name="phone" type="tel" /></div>
+
+      <!-- Account -->
+      <div class="card p-5 space-y-4">
+        <h2 class="font-serif text-lg font-semibold">Account details</h2>
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div><label class="label" for="name">Full name</label><input class="input" id="name" name="name" required /></div>
+          <div><label class="label" for="phone">Phone</label><input class="input" id="phone" name="phone" type="tel" /></div>
+        </div>
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div><label class="label" for="email">Email</label><input class="input" id="email" name="email" type="email" required autocomplete="email" /></div>
+          <div><label class="label" for="password">Password</label><input class="input" id="password" name="password" type="password" minlength="8" required autocomplete="new-password" /><p class="mt-1 text-xs text-forest/45">Min 8 characters</p></div>
+        </div>
       </div>
-      <div class="grid gap-5 sm:grid-cols-2">
-        <div><label class="label" for="email">Email</label><input class="input" id="email" name="email" type="email" required autocomplete="email" /></div>
-        <div><label class="label" for="password">Password</label><input class="input" id="password" name="password" type="password" minlength="8" required autocomplete="new-password" /><p class="mt-1 text-xs text-forest/45">Min 8 characters</p></div>
+
+      <!-- Headshot -->
+      <div class="card p-5 space-y-3">
+        <h2 class="font-serif text-lg font-semibold">Profile photo</h2>
+        <p class="text-sm text-forest/55">A clear headshot helps travelers trust and recognise you.</p>
+        <div class="flex items-center gap-5">
+          <img id="photo-preview" src="/images/guide-placeholder.svg" alt="Preview" class="h-20 w-20 rounded-full object-cover ring-2 ring-gold/20 flex-none" />
+          <div>
+            <label class="btn-outline cursor-pointer inline-block" for="headshot">
+              Choose photo
+              <input type="file" id="headshot" name="headshot" accept="image/*" class="sr-only" />
+            </label>
+            <p class="mt-1 text-xs text-forest/45">JPG or PNG, square works best.</p>
+          </div>
+        </div>
       </div>
-      <div class="grid gap-5 sm:grid-cols-2">
-        <div><label class="label" for="license_number">License number</label><input class="input" id="license_number" name="license_number" placeholder="e.g. BT-CG-1042" /></div>
-        <div><label class="label" for="years_experience">Years of experience</label><input class="input" id="years_experience" name="years_experience" type="number" min="0" value="0" /></div>
+
+      <!-- Guide info -->
+      <div class="card p-5 space-y-4">
+        <h2 class="font-serif text-lg font-semibold">Guide details</h2>
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div><label class="label" for="license_number">License number</label><input class="input" id="license_number" name="license_number" placeholder="e.g. BT-CG-1042" /></div>
+          <div><label class="label" for="years_experience">Years of experience</label><input class="input" id="years_experience" name="years_experience" type="number" min="0" value="0" /></div>
+        </div>
+        <div><label class="label" for="languages">Languages <span class="text-forest/40 font-normal">(comma separated)</span></label><input class="input" id="languages" name="languages" placeholder="English, Dzongkha, Hindi" /></div>
+        <div><label class="label" for="certifications">Certifications <span class="text-forest/40 font-normal">(comma separated)</span></label><input class="input" id="certifications" name="certifications" placeholder="Licensed Cultural Guide, Wilderness First Aid" /></div>
+        <div><label class="label" for="bio">Short bio</label><textarea class="textarea" id="bio" name="bio" rows="4" placeholder="Tell travelers about yourself, your specialties, and what makes your tours special."></textarea></div>
       </div>
-      <div><label class="label" for="languages">Languages <span class="text-forest/40 font-normal">(comma separated)</span></label><input class="input" id="languages" name="languages" placeholder="English, Dzongkha, Hindi" /></div>
-      <div><label class="label" for="certifications">Certifications <span class="text-forest/40 font-normal">(comma separated)</span></label><input class="input" id="certifications" name="certifications" placeholder="Licensed Cultural Guide, Wilderness First Aid" /></div>
-      <div><label class="label" for="bio">Short bio</label><textarea class="textarea" id="bio" name="bio" rows="4" placeholder="Tell travelers about yourself, your specialties, and what makes your tours special."></textarea></div>
+
+      <!-- Documents -->
+      <div class="card p-5 space-y-4">
+        <h2 class="font-serif text-lg font-semibold">Supporting documents</h2>
+        <p class="text-sm text-forest/55">Upload your guide license and any other relevant certificates. These are only seen by our team for verification.</p>
+
+        <div>
+          <label class="label" for="license-doc">Guide license <span class="text-forest/40 font-normal">(PDF or image)</span></label>
+          <div id="license-drop" class="mt-1 flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-forest/20 p-6 text-center hover:border-gold/40 transition-colors cursor-pointer">
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" class="text-forest/30 mb-2" viewBox="0 0 24 24"><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4-4 4M12 8v8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <p class="text-sm text-forest/50">Click to upload or drag and drop</p>
+            <p id="license-name" class="mt-1 text-xs text-forest/40"></p>
+            <input type="file" id="license-doc" name="license_doc" accept=".pdf,image/*" class="sr-only" />
+          </div>
+        </div>
+
+        <div>
+          <label class="label" for="other-docs">Other documents <span class="text-forest/40 font-normal">(optional, multiple)</span></label>
+          <div id="other-drop" class="mt-1 flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-forest/20 p-6 text-center hover:border-gold/40 transition-colors cursor-pointer">
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" class="text-forest/30 mb-2" viewBox="0 0 24 24"><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4-4 4M12 8v8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <p class="text-sm text-forest/50">Click to upload or drag and drop</p>
+            <p id="other-names" class="mt-1 text-xs text-forest/40"></p>
+            <input type="file" id="other-docs" name="other_docs" accept=".pdf,image/*" multiple class="sr-only" />
+          </div>
+        </div>
+      </div>
 
       <p id="err" class="hidden rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"></p>
+      <p id="upload-progress" class="hidden text-sm text-forest/60 text-center">Uploading files…</p>
       <button type="submit" id="btn" class="btn-gold w-full text-base">Submit application</button>
-      <p class="text-center text-xs text-forest/45">By applying you agree to our guide terms. You can add a photo and set your prices after signing in.</p>
+      <p class="text-center text-xs text-forest/45">By applying you agree to our guide terms.</p>
     </form>
   </section>
 </Layout>
@@ -47,26 +100,114 @@ export const prerender = false;
 <script>
   import { browserClient } from '../lib/supabase-browser';
 
+  const sb = browserClient();
   const form = document.getElementById('reg-form') as HTMLFormElement;
-  const err = document.getElementById('err')!;
-  const btn = document.getElementById('btn') as HTMLButtonElement;
+  const err  = document.getElementById('err')!;
+  const btn  = document.getElementById('btn') as HTMLButtonElement;
   const success = document.getElementById('success')!;
   const toList = (s: string) => s.split(',').map((x) => x.trim()).filter(Boolean);
+
+  // Photo preview
+  const headshotInput = document.getElementById('headshot') as HTMLInputElement;
+  const photoPreview  = document.getElementById('photo-preview') as HTMLImageElement;
+  headshotInput?.addEventListener('change', () => {
+    const file = headshotInput.files?.[0];
+    if (file) photoPreview.src = URL.createObjectURL(file);
+  });
+
+  // Drop zone clicks
+  function setupDropZone(zoneId: string, inputId: string, labelId: string, multiple = false) {
+    const zone  = document.getElementById(zoneId)!;
+    const input = document.getElementById(inputId) as HTMLInputElement;
+    const label = document.getElementById(labelId)!;
+    zone.addEventListener('click', () => input.click());
+    zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('border-gold/60'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('border-gold/60'));
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.classList.remove('border-gold/60');
+      if (e.dataTransfer?.files.length) {
+        const dt = new DataTransfer();
+        Array.from(e.dataTransfer.files).forEach(f => dt.items.add(f));
+        input.files = dt.files;
+        updateLabel();
+      }
+    });
+    input.addEventListener('change', updateLabel);
+    function updateLabel() {
+      const files = Array.from(input.files ?? []);
+      label.textContent = files.map(f => f.name).join(', ');
+    }
+  }
+  setupDropZone('license-drop', 'license-doc', 'license-name');
+  setupDropZone('other-drop', 'other-docs', 'other-names', true);
+
+  // Pre-fill from URL params (when redirected from login signup)
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('name')) (document.getElementById('name') as HTMLInputElement).value = params.get('name')!;
+  if (params.get('email')) (document.getElementById('email') as HTMLInputElement).value = params.get('email')!;
+
+  async function uploadFile(bucket: string, path: string, file: File): Promise<string | null> {
+    const { data, error } = await sb.storage.from(bucket).upload(path, file, { upsert: true });
+    if (error || !data) return null;
+    const { data: urlData } = sb.storage.from(bucket).getPublicUrl(data.path);
+    return urlData.publicUrl;
+  }
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     err.classList.add('hidden');
     btn.disabled = true; btn.textContent = 'Submitting…';
     const fd = new FormData(form);
-    const payload = {
-      name: fd.get('name'), email: fd.get('email'), password: fd.get('password'),
-      phone: fd.get('phone'), bio: fd.get('bio'),
-      license_number: fd.get('license_number'),
-      years_experience: fd.get('years_experience'),
-      languages: toList(String(fd.get('languages') ?? '')),
-      certifications: toList(String(fd.get('certifications') ?? '')),
-    };
+    const progress = document.getElementById('upload-progress')!;
+
     try {
+      const slug = String(fd.get('name') ?? 'guide').toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 30) + '-' + Date.now();
+
+      // Upload headshot
+      let photo_url: string | null = null;
+      const headshotFile = headshotInput.files?.[0];
+      if (headshotFile) {
+        progress.classList.remove('hidden');
+        const ext = headshotFile.name.split('.').pop();
+        photo_url = await uploadFile('guide-photos', `${slug}/headshot.${ext}`, headshotFile);
+      }
+
+      // Upload license doc
+      let license_doc_url: string | null = null;
+      const licenseInput = document.getElementById('license-doc') as HTMLInputElement;
+      const licenseFile = licenseInput.files?.[0];
+      if (licenseFile) {
+        progress.classList.remove('hidden');
+        const ext = licenseFile.name.split('.').pop();
+        license_doc_url = await uploadFile('guide-documents', `${slug}/license.${ext}`, licenseFile);
+      }
+
+      // Upload other docs
+      const otherInput = document.getElementById('other-docs') as HTMLInputElement;
+      const otherFiles = Array.from(otherInput.files ?? []);
+      const other_doc_urls: string[] = [];
+      for (let i = 0; i < otherFiles.length; i++) {
+        const f = otherFiles[i];
+        const ext = f.name.split('.').pop();
+        const url = await uploadFile('guide-documents', `${slug}/doc-${i}.${ext}`, f);
+        if (url) other_doc_urls.push(url);
+      }
+
+      progress.classList.add('hidden');
+
+      const payload = {
+        name: fd.get('name'), email: fd.get('email'), password: fd.get('password'),
+        phone: fd.get('phone'), bio: fd.get('bio'),
+        license_number: fd.get('license_number'),
+        years_experience: fd.get('years_experience'),
+        languages: toList(String(fd.get('languages') ?? '')),
+        certifications: toList(String(fd.get('certifications') ?? '')),
+        photo_url,
+        license_doc_url,
+        other_doc_urls,
+      };
+
       const res = await fetch('/api/register-guide', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

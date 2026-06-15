@@ -62,11 +62,16 @@ export const POST: APIRoute = async ({ request, locals }) => {
     slug = `${base}-${i}`;
   }
 
+  const photo_url = typeof body.photo_url === 'string' ? body.photo_url : null;
+  const license_doc_url = typeof body.license_doc_url === 'string' ? body.license_doc_url : null;
+  const other_doc_urls = Array.isArray(body.other_doc_urls) ? body.other_doc_urls : [];
+
   // Insert the guide profile (pending approval).
   const { error: gErr } = await supabase.from('guides').insert({
     user_id: userId, slug, name, email, phone, bio,
     languages, certifications, license_number: license,
     years_experience: years, status: 'pending',
+    photo_url, license_doc_url, other_doc_urls,
   });
   if (gErr) {
     await supabase.auth.admin.deleteUser(userId);
