@@ -38,22 +38,12 @@ export const prerender = false;
       <!-- Sign up form -->
       <div id="panel-signup" class="hidden">
         <form id="signup-form" class="space-y-4">
-          <!-- Account type -->
-          <div>
-            <p class="label mb-2">I want to…</p>
-            <div class="grid grid-cols-2 gap-3">
-              <label id="type-guest-label" class="flex flex-col items-center gap-2 cursor-pointer rounded-xl border-2 border-gold p-4 text-center transition-all">
-                <input type="radio" name="account_type" value="guest" class="sr-only" checked />
-                <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke-linecap="round"/></svg>
-                <span class="text-sm font-semibold text-forest">Traveler account</span>
-                <span class="text-xs text-forest/50">Browse &amp; book tours</span>
-              </label>
-              <label id="type-guide-label" class="flex flex-col items-center gap-2 cursor-pointer rounded-xl border-2 border-forest/15 p-4 text-center transition-all">
-                <input type="radio" name="account_type" value="guide" class="sr-only" />
-                <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M3 17l4-8 4 4 3-5 4 9" stroke-linecap="round" stroke-linejoin="round"/><circle cx="18" cy="5" r="2"/></svg>
-                <span class="text-sm font-semibold text-forest">Guide</span>
-                <span class="text-xs text-forest/50">Apply as a local guide</span>
-              </label>
+          <!-- Account type info -->
+          <div class="flex items-center gap-3 rounded-xl bg-cream-dark px-4 py-3">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" class="flex-none text-forest/50"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke-linecap="round"/></svg>
+            <div>
+              <p class="text-sm font-semibold text-forest">Traveler account</p>
+              <p class="text-xs text-forest/50">Browse tours, message guides and make bookings.</p>
             </div>
           </div>
           <div>
@@ -82,9 +72,13 @@ export const prerender = false;
           <button id="back-to-signin" class="btn-outline mt-5 w-full">Back to sign in</button>
         </div>
 
-        <p id="signup-footer" class="mt-5 text-center text-sm text-forest/60">
-          Want to guide? <a href="/register" class="font-medium text-gold-dark hover:underline">Apply as a guide instead</a>
-        </p>
+        <a id="signup-footer" href="/register" class="mt-4 flex items-center justify-between gap-3 rounded-xl border border-gold/40 bg-gold/5 px-4 py-3 hover:bg-gold/10 transition-colors">
+          <div>
+            <p class="text-sm font-semibold text-forest">Want to become a guide?</p>
+            <p class="text-xs text-forest/55">Apply for a guide account — it takes 5 minutes.</p>
+          </div>
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" class="flex-none text-gold-dark" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
       </div>
 
     </div>
@@ -178,33 +172,12 @@ export const prerender = false;
   const signupSuccess = document.getElementById('signup-success')!;
   const signupBtn = document.getElementById('signup-btn') as HTMLButtonElement;
 
-  // Account type toggle styling
-  document.querySelectorAll('input[name="account_type"]').forEach((radio) => {
-    radio.addEventListener('change', () => {
-      const val = (document.querySelector('input[name="account_type"]:checked') as HTMLInputElement)?.value;
-      document.getElementById('type-guest-label')!.style.borderColor = val === 'guest' ? '#C8860A' : 'rgba(11,61,46,0.15)';
-      document.getElementById('type-guide-label')!.style.borderColor = val === 'guide' ? '#C8860A' : 'rgba(11,61,46,0.15)';
-    });
-  });
-
   signupForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     signupErr.classList.add('hidden');
     signupSuccess.classList.add('hidden');
     signupBtn.disabled = true; signupBtn.textContent = 'Creating account…';
     const fd = new FormData(signupForm);
-    const accountType = String(fd.get('account_type') ?? 'guest');
-
-    // Guide accounts go through the full guide registration flow
-    if (accountType === 'guide') {
-      const params = new URLSearchParams({
-        name: String(fd.get('name') ?? ''),
-        email: String(fd.get('email') ?? ''),
-        password: String(fd.get('password') ?? ''),
-      });
-      window.location.href = `/register?${params}`;
-      return;
-    }
 
     try {
       const { error } = await sb.auth.signUp({
