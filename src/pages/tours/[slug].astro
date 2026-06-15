@@ -159,7 +159,7 @@ if (minPrice && maxPrice) tourJsonLd["offers"] = {
           <div class="mt-5 grid gap-4 sm:grid-cols-3">
             {tiers.map((tier) => (
               <div class={`card cursor-pointer rounded-2xl border-2 p-5 transition-all duration-200 ${tierColors[tier.key]}`}
-                   data-tier={tier.key} id={`tier-${tier.key}`}>
+                   data-tier={tier.key} data-price={formatMoney(tier.price_cents)} id={`tier-${tier.key}`}>
                 <div class="flex items-center justify-between">
                   <span class={`pill text-xs font-semibold ${tierBadge[tier.key]}`}>
                     {tierIcons[tier.key]} {tier.label}
@@ -475,6 +475,10 @@ if (minPrice && maxPrice) tourJsonLd["offers"] = {
       const isSelected = el.dataset.tier === key;
       el.style.outline = isSelected ? '3px solid #C8860A' : '';
       el.style.outlineOffset = isSelected ? '2px' : '';
+      if (isSelected && el.dataset.price) {
+        const priceEl = document.getElementById('aside-price');
+        if (priceEl) priceEl.textContent = el.dataset.price;
+      }
     });
     bookLinks.forEach((a) => {
       const el = a as HTMLAnchorElement;
