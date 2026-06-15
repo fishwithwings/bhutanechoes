@@ -41,15 +41,19 @@ function ratingFor(reviews: Review[], guideId: string) {
 export async function getTours(env?: Env): Promise<Tour[]> {
   const client = db(env);
   if (client) {
-    const { data, error } = await client
-      .from('tours').select('*, tour_tiers(price_cents)').eq('is_active', true).order('sort_order');
-    if (!error && data) {
-      return (data as any[]).map((t) => {
-        const prices: number[] = (t.tour_tiers ?? []).map((tt: any) => tt.price_cents).filter((p: number) => p > 0);
-        return {
-          ...t,
-          min_price_cents: prices.length ? Math.min(...prices) : t.min_price_cents,
-        } as Tour;
+    const [toursRes, tiersRes] = await Promise.all([
+      client.from('tours').select('*').eq('is_active', true).order('sort_order'),
+      client.from('tour_tiers').select('tour_id, price_cents'),
+    ]);
+    if (!toursRes.error && toursRes.data) {
+      const tiersByTour: Record<string, number[]> = {};
+      for (const tt of (tiersRes.data ?? []) as any[]) {
+        if (!tiersByTour[tt.tour_id]) tiersByTour[tt.tour_id] = [];
+        tiersByTour[tt.tour_id].push(tt.price_cents);
+      }
+      return (toursRes.data as Tour[]).map((t) => {
+        const prices = tiersByTour[t.id]?.filter((p) => p > 0);
+        return prices?.length ? { ...t, min_price_cents: Math.min(...prices) } : t;
       });
     }
   }
