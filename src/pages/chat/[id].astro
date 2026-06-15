@@ -61,9 +61,7 @@ export const prerender = false;
     if (!convo) {
       msgsEl.innerHTML = '<p class="text-center text-forest/50">Conversation not found.</p>';
       chatUi.classList.remove('hidden');
-      return;
-    }
-
+    } else {
     const guide = convo.guide as any;
     const isGuide = guide?.user_id === user.id;
     const otherName = isGuide ? 'Guest' : (guide?.name ?? 'Guide');
