@@ -1,4 +1,5 @@
 export type Difficulty = 'easy' | 'moderate' | 'challenging' | 'strenuous';
+export type TourType = 'cultural' | 'luxury' | 'festival' | 'trekking' | 'adventure';
 export type TierKey = 'basic' | 'classic' | 'luxury';
 
 export interface TourTier {
@@ -44,6 +45,7 @@ export interface Tour {
   highlights: string[];
   itinerary?: ItineraryDay[];
   map_points?: MapPoint[];
+  tour_type: TourType | null;
   is_active: boolean;
   sort_order: number;
 }

@@ -16,6 +16,17 @@ const { tour, guideCount } = Astro.props;
     <span class="pill-gold absolute left-3 top-3 bg-white/90 backdrop-blur">
       {formatDuration(tour.duration_days)}
     </span>
+    {tour.tour_type && (
+      <span class={`absolute right-3 top-3 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide backdrop-blur ${
+        tour.tour_type === 'luxury'   ? 'bg-amber-900/80 text-amber-100' :
+        tour.tour_type === 'festival' ? 'bg-forest/80 text-cream' :
+        tour.tour_type === 'trekking' ? 'bg-stone-700/80 text-stone-100' :
+        tour.tour_type === 'adventure'? 'bg-red-800/80 text-red-100' :
+                                        'bg-sky-800/80 text-sky-100'
+      }`}>
+        {tour.tour_type}
+      </span>
+    )}
   </div>
   <div class="p-5">
     <div class="flex items-center gap-2 text-xs text-forest/50">

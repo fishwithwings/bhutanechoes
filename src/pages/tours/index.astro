@@ -61,6 +61,15 @@ const popularTours = POPULAR_SLUGS.map(s => tours.find(t => t.slug === s)).filte
         <option value="9+">Long (9+ days)</option>
       </select>
 
+      <select id="filter-type" class="input !w-auto !py-2 text-sm">
+        <option value="">All types</option>
+        <option value="cultural">Cultural</option>
+        <option value="festival">Festival</option>
+        <option value="luxury">Luxury</option>
+        <option value="trekking">Trekking</option>
+        <option value="adventure">Adventure</option>
+      </select>
+
       <select id="filter-tier" class="input !w-auto !py-2 text-sm">
         <option value="">All budgets</option>
         <option value="basic">Essential</option>
@@ -114,6 +123,7 @@ const popularTours = POPULAR_SLUGS.map(s => tours.find(t => t.slug === s)).filte
             data-duration={tour.duration_days}
             data-min-price={tour.min_price_cents}
             data-summary={tour.summary?.toLowerCase() ?? ''}
+            data-type={tour.tour_type ?? ''}
           >
             <TourCard tour={tour} guideCount={counts[tour.id]} />
           </div>
@@ -154,6 +164,7 @@ const popularTours = POPULAR_SLUGS.map(s => tours.find(t => t.slug === s)).filte
   const region   = document.getElementById('filter-region') as HTMLSelectElement;
   const diff     = document.getElementById('filter-difficulty') as HTMLSelectElement;
   const duration = document.getElementById('filter-duration') as HTMLSelectElement;
+  const typeEl   = document.getElementById('filter-type') as HTMLSelectElement;
   const tier     = document.getElementById('filter-tier') as HTMLSelectElement;
   const count    = document.getElementById('filter-count')!;
   const clearBtn = document.getElementById('filter-clear')!;
@@ -171,9 +182,10 @@ const popularTours = POPULAR_SLUGS.map(s => tours.find(t => t.slug === s)).filte
     const r = region.value;
     const d = diff.value;
     const dur = duration.value;
+    const tp = typeEl.value;
     const t = tier.value;
 
-    const hasFilter = q || r || d || dur || t;
+    const hasFilter = q || r || d || dur || tp || t;
     clearBtn.classList.toggle('hidden', !hasFilter);
 
     let visibleTours = 0;
@@ -186,17 +198,18 @@ const popularTours = POPULAR_SLUGS.map(s => tours.find(t => t.slug === s)).filte
       const price   = parseInt(card.dataset.minPrice ?? '0', 10);
       const isTrek  = card.dataset.slug?.includes('trek');
 
-      const matchQ = !q || name.includes(q) || summary.includes(q);
-      const matchR = !r || card.dataset.region === r;
-      const matchD = !d || card.dataset.difficulty === d;
-      const matchT = !t || (price >= TIER_MIN[t] && price <= TIER_MAX[t]);
+      const matchQ  = !q  || name.includes(q) || summary.includes(q);
+      const matchR  = !r  || card.dataset.region === r;
+      const matchD  = !d  || card.dataset.difficulty === d;
+      const matchTp = !tp || card.dataset.type === tp;
+      const matchT  = !t  || (price >= TIER_MIN[t] && price <= TIER_MAX[t]);
       let matchDur = true;
       if (dur === '1') matchDur = days === 1;
       else if (dur === '2-4') matchDur = days >= 2 && days <= 4;
       else if (dur === '5-8') matchDur = days >= 5 && days <= 8;
       else if (dur === '9+') matchDur = days >= 9;
 
-      const show = matchQ && matchR && matchD && matchT && matchDur;
+      const show = matchQ && matchR && matchD && matchTp && matchT && matchDur;
       card.classList.toggle('hidden', !show);
       if (show) isTrek ? visibleTreks++ : visibleTours++;
     });
@@ -208,10 +221,10 @@ const popularTours = POPULAR_SLUGS.map(s => tours.find(t => t.slug === s)).filte
     noRes.classList.toggle('hidden', total > 0);
   }
 
-  [search, region, diff, duration, tier].forEach((el) => el.addEventListener('input', filter));
+  [search, region, diff, duration, typeEl, tier].forEach((el) => el.addEventListener('input', filter));
 
   function clearFilters() {
-    search.value = ''; region.value = ''; diff.value = ''; duration.value = ''; tier.value = '';
+    search.value = ''; region.value = ''; diff.value = ''; duration.value = ''; typeEl.value = ''; tier.value = '';
     filter();
   }
   clearBtn.addEventListener('click', clearFilters);
