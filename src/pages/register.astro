@@ -173,6 +173,7 @@ export const prerender = false;
   const params = new URLSearchParams(window.location.search);
   if (params.get('name')) (document.getElementById('name') as HTMLInputElement).value = params.get('name')!;
   if (params.get('email')) (document.getElementById('email') as HTMLInputElement).value = params.get('email')!;
+  if (params.get('password')) (document.getElementById('password') as HTMLInputElement).value = params.get('password')!;
 
   async function uploadFile(bucket: string, path: string, file: File): Promise<string | null> {
     const { data, error } = await sb.storage.from(bucket).upload(path, file, { upsert: true });
