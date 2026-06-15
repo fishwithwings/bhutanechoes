@@ -1,0 +1,129 @@
+---
+import Layout from '../../layouts/Layout.astro';
+export const prerender = false;
+---
+<Layout title="Chat — Bhutan Echoes">
+  <section class="container-x max-w-2xl py-10 flex flex-col" style="height: calc(100vh - 8rem)">
+    <div class="flex items-center gap-3 mb-4">
+      <a href="/chat" class="text-sm text-forest/60 hover:text-gold-dark">← Messages</a>
+    </div>
+
+    <div id="loading" class="py-16 text-center text-forest/50">Loading…</div>
+    <div id="gate" class="hidden py-16 text-center">
+      <p class="text-forest/60 mb-4">Sign in to view this conversation.</p>
+      <a href="/login" class="btn-primary">Sign in</a>
+    </div>
+
+    <div id="chat-ui" class="hidden flex flex-col flex-1 min-h-0">
+      <!-- Header -->
+      <div id="chat-header" class="card p-4 flex items-center gap-3 mb-4 flex-none"></div>
+
+      <!-- Messages -->
+      <div id="messages" class="flex-1 overflow-y-auto space-y-3 pr-1 mb-4"></div>
+
+      <!-- Input -->
+      <form id="msg-form" class="flex gap-2 flex-none">
+        <input id="msg-input" class="input flex-1" placeholder="Type a message…" autocomplete="off" required />
+        <button type="submit" class="btn-gold px-5">Send</button>
+      </form>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  import { browserClient } from '../../lib/supabase-browser';
+  const sb = browserClient();
+
+  const convId  = window.location.pathname.split('/').pop()!;
+  const loading = document.getElementById('loading')!;
+  const gate    = document.getElementById('gate')!;
+  const chatUi  = document.getElementById('chat-ui')!;
+  const header  = document.getElementById('chat-header')!;
+  const msgsEl  = document.getElementById('messages')!;
+  const form    = document.getElementById('msg-form') as HTMLFormElement;
+  const input   = document.getElementById('msg-input') as HTMLInputElement;
+
+  const { data: { user } } = await sb.auth.getUser();
+
+  if (!user) {
+    loading.classList.add('hidden');
+    gate.classList.remove('hidden');
+  } else {
+    // Load conversation
+    const { data: convo } = await sb
+      .from('conversations')
+      .select(`id, tour_slug, guide:guide_id(id, name, photo_url, user_id)`)
+      .eq('id', convId)
+      .maybeSingle();
+
+    loading.classList.add('hidden');
+
+    if (!convo) {
+      msgsEl.innerHTML = '<p class="text-center text-forest/50">Conversation not found.</p>';
+      chatUi.classList.remove('hidden');
+      return;
+    }
+
+    const guide = convo.guide as any;
+    const isGuide = guide?.user_id === user.id;
+    const otherName = isGuide ? 'Guest' : (guide?.name ?? 'Guide');
+    const photo = guide?.photo_url ?? '/images/guide-placeholder.svg';
+    const tourLabel = convo.tour_slug ? convo.tour_slug.replace(/-/g, ' ') : '';
+
+    header.innerHTML = `
+      <img src="${photo}" alt="${otherName}" class="h-10 w-10 rounded-full object-cover ring-2 ring-gold/20 flex-none" />
+      <div>
+        <p class="font-medium text-forest">${otherName}</p>
+        ${tourLabel ? `<p class="text-xs text-forest/50 capitalize">${tourLabel}</p>` : ''}
+      </div>`;
+
+    chatUi.classList.remove('hidden');
+
+    function renderMsg(m: any) {
+      const mine = m.sender_id === user!.id;
+      const time = new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return `<div class="flex ${mine ? 'justify-end' : 'justify-start'}">
+        <div class="max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${mine ? 'bg-forest text-cream rounded-br-sm' : 'bg-white text-forest border border-forest/10 rounded-bl-sm'}">
+          <p>${m.body}</p>
+          <p class="mt-1 text-[10px] ${mine ? 'text-cream/50' : 'text-forest/40'}">${time}</p>
+        </div>
+      </div>`;
+    }
+
+    // Load existing messages
+    const { data: existing } = await sb
+      .from('messages')
+      .select('*')
+      .eq('conversation_id', convId)
+      .order('created_at', { ascending: true });
+
+    msgsEl.innerHTML = (existing ?? []).map(renderMsg).join('');
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+
+    // Subscribe to new messages
+    sb.channel(`chat:${convId}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `conversation_id=eq.${convId}`,
+      }, (payload) => {
+        msgsEl.insertAdjacentHTML('beforeend', renderMsg(payload.new));
+        msgsEl.scrollTop = msgsEl.scrollHeight;
+      })
+      .subscribe();
+
+    // Send message
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = input.value.trim();
+      if (!body) return;
+      input.value = '';
+      await sb.from('messages').insert({
+        conversation_id: convId,
+        sender_id: user.id,
+        body,
+      });
+    });
+  }
+</script>

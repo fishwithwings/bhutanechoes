@@ -33,6 +33,7 @@ const links = [
     <div class="flex items-center gap-2">
       <a id="nav-dashboard" href="/dashboard" class="hidden btn-ghost sm:inline-flex">Dashboard</a>
       <a id="nav-account" href="/account" class="hidden btn-ghost sm:inline-flex">My account</a>
+      <a id="nav-messages" href="/chat" class="hidden btn-ghost sm:inline-flex">Messages</a>
       <a id="nav-signin" href="/login" class="btn-ghost sm:inline-flex">Sign in</a>
       <button id="nav-signout" class="hidden btn-ghost sm:inline-flex">Sign out</button>
       <a href="/tours" class="btn-gold">Book a tour</a>
@@ -76,6 +77,7 @@ const links = [
       } else {
         document.getElementById('nav-account')?.classList.remove('hidden');
       }
+      document.getElementById('nav-messages')?.classList.remove('hidden');
       document.getElementById('nav-signout')?.classList.remove('hidden');
       document.getElementById('mobile-signout')?.classList.remove('hidden');
     }

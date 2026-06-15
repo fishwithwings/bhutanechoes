@@ -237,17 +237,25 @@ if (minPrice && maxPrice) tourJsonLd["offers"] = {
                     <p class="mt-1 text-xs text-forest/55">{g.years_experience}+ yrs · {(g.languages ?? []).join(', ')}</p>
                   </div>
                 </a>
-                <button
-                  class="book-btn btn-gold whitespace-nowrap"
-                  data-guide={g.slug}
-                  data-guide-name={g.name}
-                  data-guide-photo={g.photo_url ?? '/images/guide-placeholder.svg'}
-                  data-guide-email={g.email ?? ''}
-                  data-guide-phone={g.phone ?? ''}
-                  data-tour={tour.slug}
-                  data-tour-name={tour.name}>
-                  Book this guide →
-                </button>
+                <div class="flex gap-2 flex-none">
+                  <button
+                    class="msg-btn btn-outline whitespace-nowrap"
+                    data-guide-id={g.id}
+                    data-tour-slug={tour.slug}>
+                    Message
+                  </button>
+                  <button
+                    class="book-btn btn-gold whitespace-nowrap"
+                    data-guide={g.slug}
+                    data-guide-name={g.name}
+                    data-guide-photo={g.photo_url ?? '/images/guide-placeholder.svg'}
+                    data-guide-email={g.email ?? ''}
+                    data-guide-phone={g.phone ?? ''}
+                    data-tour={tour.slug}
+                    data-tour-name={tour.name}>
+                    Book →
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -565,5 +573,39 @@ if (minPrice && maxPrice) tourJsonLd["offers"] = {
       inqSubmit.disabled = false;
       inqSubmit.textContent = 'Send inquiry';
     }
+  });
+</script>
+
+<script>
+  import { browserClient } from '../../lib/supabase-browser';
+
+  document.querySelectorAll<HTMLElement>('.msg-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const sb = browserClient();
+      const { data: { user } } = await sb.auth.getUser();
+      if (!user) {
+        window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`;
+        return;
+      }
+      btn.textContent = 'Opening…';
+      btn.setAttribute('disabled', 'true');
+      const res = await fetch('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          guest_user_id: user.id,
+          guide_id: btn.dataset.guideId,
+          tour_slug: btn.dataset.tourSlug,
+        }),
+      });
+      const data = await res.json();
+      if (data.id) {
+        window.location.href = `/chat/${data.id}`;
+      } else {
+        btn.textContent = 'Message';
+        btn.removeAttribute('disabled');
+        alert(data.error ?? 'Could not start conversation.');
+      }
+    });
   });
 </script>

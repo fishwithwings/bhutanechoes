@@ -1,0 +1,64 @@
+---
+import Layout from '../../layouts/Layout.astro';
+export const prerender = false;
+---
+<Layout title="Messages — Bhutan Echoes">
+  <section class="container-x max-w-2xl py-10">
+    <h1 class="font-serif text-3xl font-bold mb-6">Messages</h1>
+
+    <div id="loading" class="py-16 text-center text-forest/50">Loading…</div>
+    <div id="gate" class="hidden py-16 text-center">
+      <p class="text-forest/60 mb-4">Sign in to view your messages.</p>
+      <a href="/login" class="btn-primary">Sign in</a>
+    </div>
+    <div id="inbox" class="hidden space-y-2"></div>
+    <div id="empty" class="hidden py-16 text-center text-forest/50">No conversations yet.</div>
+  </section>
+</Layout>
+
+<script>
+  import { browserClient } from '../../lib/supabase-browser';
+  const sb = browserClient();
+
+  const { data: { user } } = await sb.auth.getUser();
+  const loading = document.getElementById('loading')!;
+  const gate    = document.getElementById('gate')!;
+  const inbox   = document.getElementById('inbox')!;
+  const empty   = document.getElementById('empty')!;
+
+  if (!user) {
+    loading.classList.add('hidden');
+    gate.classList.remove('hidden');
+  } else {
+    // Fetch conversations with related data
+    const { data: convos } = await sb
+      .from('conversations')
+      .select(`id, tour_slug, created_at,
+        guest:guest_user_id ( id ),
+        guide:guide_id ( id, name, photo_url, user_id )`)
+      .or(`guest_user_id.eq.${user.id},guide_id.in.(select id from guides where user_id = '${user.id}')`)
+      .order('created_at', { ascending: false });
+
+    loading.classList.add('hidden');
+
+    if (!convos || convos.length === 0) {
+      empty.classList.remove('hidden');
+    } else {
+      inbox.classList.remove('hidden');
+      inbox.innerHTML = convos.map((c: any) => {
+        const isGuide = c.guide?.user_id === user.id;
+        const otherName = isGuide ? 'Guest' : (c.guide?.name ?? 'Guide');
+        const photo = c.guide?.photo_url ?? '/images/guide-placeholder.svg';
+        const tourLabel = c.tour_slug ? c.tour_slug.replace(/-/g, ' ') : 'General';
+        return `<a href="/chat/${c.id}" class="card flex items-center gap-4 p-4 hover:shadow-md transition-shadow">
+          <img src="${photo}" alt="${otherName}" class="h-12 w-12 rounded-full object-cover flex-none ring-2 ring-gold/20" />
+          <div class="min-w-0">
+            <p class="font-medium text-forest">${otherName}</p>
+            <p class="text-xs text-forest/50 capitalize">${tourLabel}</p>
+          </div>
+          <svg class="ml-auto flex-none text-forest/30" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l7-7M5 5h7v7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>`;
+      }).join('');
+    }
+  }
+</script>
