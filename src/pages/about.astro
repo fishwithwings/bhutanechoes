@@ -15,8 +15,18 @@ const faqs = [
   { q: 'Is the price per person or per group?', a: 'Prices are shown per person. Your total is the per-person price multiplied by your group size.' },
   { q: 'Can I cancel?', a: "Cancellation terms depend on the tour and timing. Contact us and we'll coordinate with your guide." },
 ];
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": faqs.map(f => ({
+    "@type": "Question",
+    "name": f.q,
+    "acceptedAnswer": { "@type": "Answer", "text": f.a }
+  }))
+};
 ---
-<Layout title="How it works — Bhutan Echoes">
+<Layout title="How it works — Bhutan Echoes" description="Learn how Bhutan Echoes works — browse tours, choose a licensed local guide, and book securely online." jsonLd={jsonLd}>
   <section class="bg-cream-dark border-b border-forest/10">
     <div class="container-x py-14">
       <p class="eyebrow">How it works</p>

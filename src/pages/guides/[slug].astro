@@ -10,8 +10,26 @@ const profile = await getGuideBySlug(slug!, env);
 if (!profile) return Astro.redirect('/404');
 
 const { guide, tours, reviews, rating, review_count } = profile;
+
+const jsonLd: Record<string, unknown> = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": guide.name,
+  "description": guide.bio ?? undefined,
+  "url": `https://bhutanechoes.com/guides/${guide.slug}`,
+  "jobTitle": "Licensed Bhutan Tour Guide",
+  "worksFor": { "@type": "Organization", "name": "Bhutan Echoes", "url": "https://bhutanechoes.com" },
+};
+if (guide.photo_url) jsonLd["image"] = guide.photo_url;
+if (review_count > 0) jsonLd["aggregateRating"] = {
+  "@type": "AggregateRating",
+  "ratingValue": rating.toFixed(1),
+  "reviewCount": review_count,
+  "bestRating": "5",
+  "worstRating": "1",
+};
 ---
-<Layout title={`${guide.name} — Bhutan guide — Bhutan Echoes`} description={guide.bio ?? undefined}>
+<Layout title={`${guide.name} — Bhutan guide — Bhutan Echoes`} description={guide.bio ?? undefined} jsonLd={jsonLd}>
   <section class="bg-forest text-cream">
     <div class="container-x flex flex-col items-center gap-6 py-14 text-center sm:flex-row sm:text-left">
       <img src={guide.photo_url ?? '/images/guide-placeholder.svg'} alt={guide.name}

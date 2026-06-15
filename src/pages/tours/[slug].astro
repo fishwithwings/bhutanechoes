@@ -27,20 +27,34 @@ const tierBadge: Record<string, string> = {
   classic: 'bg-gold/10 text-gold-dark',
   luxury:  'bg-amber-100 text-amber-800',
 };
+
+const minPrice = tiers.length ? Math.min(...tiers.map(t => t.price_min_cents)) / 100 : null;
+const maxPrice = tiers.length ? Math.max(...tiers.map(t => t.price_max_cents)) / 100 : null;
+
+const tourJsonLd: Record<string, unknown> = {
+  "@context": "https://schema.org",
+  "@type": "TouristTrip",
+  "name": tour.name,
+  "description": tour.summary,
+  "url": `https://bhutanechoes.com/tours/${tour.slug}`,
+  "touristType": "Adventure",
+  "itinerary": { "@type": "ItemList", "numberOfItems": tour.duration_days },
+  "provider": { "@type": "Organization", "name": "Bhutan Echoes", "url": "https://bhutanechoes.com" },
+};
+if (tour.image_url?.startsWith('http')) tourJsonLd["image"] = tour.image_url;
+if (minPrice && maxPrice) tourJsonLd["offers"] = {
+  "@type": "AggregateOffer",
+  "priceCurrency": "USD",
+  "lowPrice": minPrice,
+  "highPrice": maxPrice,
+  "offerCount": tiers.length,
+};
 ---
 <Layout
   title={`${tour.name} — Bhutan Echoes`}
   description={tour.summary ?? undefined}
   ogImage={tour.image_url?.startsWith('http') ? tour.image_url : undefined}
-  jsonLd={{
-    "@context": "https://schema.org",
-    "@type": "TouristTrip",
-    "name": tour.name,
-    "description": tour.summary,
-    "touristType": "Adventure",
-    "itinerary": { "@type": "ItemList", "numberOfItems": tour.duration_days },
-    "provider": { "@type": "Organization", "name": "Bhutan Echoes", "url": "https://bhutanechoes.com" },
-  }}
+  jsonLd={tourJsonLd}
 >
 
   <!-- Hero -->

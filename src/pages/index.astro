@@ -23,8 +23,33 @@ const trust = [
   { stat: '3', label: 'All-inclusive tiers' },
   { stat: 'Secure', label: 'Stripe-powered payments' },
 ];
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://bhutanechoes.com/#website",
+      "url": "https://bhutanechoes.com",
+      "name": "Bhutan Echoes",
+      "description": "Book licensed local guides for Bhutan tours and treks.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": { "@type": "EntryPoint", "urlTemplate": "https://bhutanechoes.com/tours?q={search_term_string}" },
+        "query-input": "required name=search_term_string"
+      }
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://bhutanechoes.com/#organization",
+      "url": "https://bhutanechoes.com",
+      "name": "Bhutan Echoes",
+      "logo": { "@type": "ImageObject", "url": "https://bhutanechoes.com/logo.svg" },
+      "sameAs": []
+    }
+  ]
+};
 ---
-<Layout>
+<Layout jsonLd={jsonLd}>
   <!-- Hero -->
   <section class="relative overflow-hidden">
     <div class="absolute inset-0 -z-10">
