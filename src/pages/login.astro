@@ -23,7 +23,11 @@ export const prerender = false;
             <label class="label" for="password">Password</label>
             <input class="input" type="password" id="password" name="password" required autocomplete="current-password" />
           </div>
+          <div class="flex justify-end">
+            <button type="button" id="forgot-btn" class="text-sm text-forest/55 hover:text-gold-dark">Forgot password?</button>
+          </div>
           <p id="login-err" class="hidden rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"></p>
+          <p id="reset-ok" class="hidden rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">Check your email for a password reset link.</p>
           <button type="submit" id="login-btn" class="btn-primary w-full">Sign in</button>
         </form>
         <p class="mt-5 text-center text-sm text-forest/60">
@@ -103,6 +107,23 @@ export const prerender = false;
     else window.location.href = '/account';
   }
   routeByRole().catch(() => {});
+
+  // Forgot password
+  document.getElementById('forgot-btn')?.addEventListener('click', async () => {
+    const email = (document.getElementById('email') as HTMLInputElement).value.trim();
+    const resetOk = document.getElementById('reset-ok')!;
+    const loginErr = document.getElementById('login-err')!;
+    if (!email) {
+      loginErr.textContent = 'Enter your email above first.';
+      loginErr.classList.remove('hidden');
+      return;
+    }
+    loginErr.classList.add('hidden');
+    await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    resetOk.classList.remove('hidden');
+  });
 
   // Sign in
   const loginForm = document.getElementById('login-form') as HTMLFormElement;
