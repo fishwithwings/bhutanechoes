@@ -1,0 +1,385 @@
+---
+import Layout from '../layouts/Layout.astro';
+export const prerender = false;
+---
+<Layout title="Guide dashboard — Bhutan Echoes">
+  <section class="container-x py-10">
+    <!-- Loading / auth gate -->
+    <div id="loading" class="py-20 text-center text-forest/50">Loading your dashboard…</div>
+
+    <div id="dash" class="hidden space-y-8">
+      <!-- Header -->
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 class="font-serif text-3xl font-bold">Guide dashboard</h1>
+          <p id="welcome" class="text-forest/60"></p>
+        </div>
+        <button id="signout" class="btn-outline">Sign out</button>
+      </div>
+
+      <!-- Status banner -->
+      <div id="status-banner"></div>
+
+      <div class="grid gap-8 lg:grid-cols-2">
+        <!-- Payouts -->
+        <div class="card p-6">
+          <h2 class="font-serif text-xl font-semibold">Payouts</h2>
+          <p class="mt-1 text-sm text-forest/60">Connect Stripe to receive your share of each booking automatically.</p>
+          <div id="payout-state" class="mt-4"></div>
+        </div>
+
+        <!-- Stats -->
+        <div class="card p-6">
+          <h2 class="font-serif text-xl font-semibold">At a glance</h2>
+          <div class="mt-4 grid grid-cols-3 gap-4 text-center">
+            <div><p id="stat-bookings" class="font-serif text-2xl font-bold text-forest">0</p><p class="text-xs text-forest/55">Bookings</p></div>
+            <div><p id="stat-upcoming" class="font-serif text-2xl font-bold text-forest">0</p><p class="text-xs text-forest/55">Upcoming</p></div>
+            <div><p id="stat-earnings" class="font-serif text-2xl font-bold text-forest">$0</p><p class="text-xs text-forest/55">Earned</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile editor -->
+      <div class="card p-6">
+        <h2 class="font-serif text-xl font-semibold">Your profile</h2>
+        <form id="profile-form" class="mt-5 space-y-5">
+          <div class="flex items-center gap-5">
+            <img id="photo-preview" src="/images/guide-placeholder.svg" alt="" class="h-20 w-20 rounded-full object-cover ring-2 ring-gold/20" />
+            <div>
+              <label class="label" for="photo">Profile photo</label>
+              <input type="file" id="photo" accept="image/*" class="text-sm" />
+              <p class="mt-1 text-xs text-forest/45">JPG/PNG, square works best.</p>
+            </div>
+          </div>
+          <div class="grid gap-5 sm:grid-cols-2">
+            <div><label class="label" for="p-name">Name</label><input class="input" id="p-name" /></div>
+            <div><label class="label" for="p-phone">Phone</label><input class="input" id="p-phone" /></div>
+          </div>
+          <div class="grid gap-5 sm:grid-cols-2">
+            <div><label class="label" for="p-years">Years experience</label><input class="input" type="number" min="0" id="p-years" /></div>
+            <div><label class="label" for="p-license">License number</label><input class="input" id="p-license" /></div>
+          </div>
+          <div><label class="label" for="p-languages">Languages (comma separated)</label><input class="input" id="p-languages" /></div>
+          <div><label class="label" for="p-certs">Certifications (comma separated)</label><input class="input" id="p-certs" /></div>
+          <div><label class="label" for="p-bio">Bio</label><textarea class="textarea" id="p-bio" rows="4"></textarea></div>
+          <div class="flex items-center gap-3">
+            <button type="submit" class="btn-primary">Save profile</button>
+            <span id="profile-msg" class="text-sm text-forest/60"></span>
+          </div>
+        </form>
+      </div>
+
+      <!-- Tours & prices -->
+      <div class="card p-6">
+        <h2 class="font-serif text-xl font-semibold">Your tours &amp; prices</h2>
+        <p class="mt-1 text-sm text-forest/60">Enable the tours you offer and set your per-person price within each allowed range.</p>
+        <div id="tours-list" class="mt-5 space-y-3"></div>
+      </div>
+
+      <!-- Availability -->
+      <div class="card p-6">
+        <h2 class="font-serif text-xl font-semibold">Blocked dates</h2>
+        <p class="mt-1 text-sm text-forest/60">Mark dates you're unavailable — travelers won't be able to book you on these days.</p>
+        <div class="mt-5 flex flex-wrap gap-3 items-end">
+          <div>
+            <label class="label" for="avail-date">Date</label>
+            <input type="date" class="input" id="avail-date" />
+          </div>
+          <div class="flex-1 min-w-40">
+            <label class="label" for="avail-note">Note (optional)</label>
+            <input class="input" id="avail-note" placeholder="e.g. Personal trip" />
+          </div>
+          <button id="avail-add" class="btn-primary">Block date</button>
+          <span id="avail-msg" class="text-xs text-forest/55"></span>
+        </div>
+        <div id="avail-list" class="mt-4 space-y-2"></div>
+      </div>
+
+      <!-- Bookings -->
+      <div class="card p-6">
+        <h2 class="font-serif text-xl font-semibold">Your bookings</h2>
+        <div id="bookings-list" class="mt-5 overflow-x-auto"></div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  import { browserClient } from '../lib/supabase-browser';
+
+  const fmt = (c: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(c / 100);
+  const $ = (id: string) => document.getElementById(id)!;
+  const toList = (s: string) => s.split(',').map((x) => x.trim()).filter(Boolean);
+
+  let sb: ReturnType<typeof browserClient>;
+  try { sb = browserClient(); } catch (e: any) {
+    $('loading').textContent = e.message; throw e;
+  }
+
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = '/login'; }
+  const user = session!.user;
+
+  // Load guide row
+  let { data: guide } = await sb.from('guides').select('*').eq('user_id', user.id).maybeSingle();
+  if (!guide) {
+    $('loading').innerHTML = 'No guide profile found for this account. <a class="text-gold-dark underline" href="/register">Apply as a guide</a>.';
+  } else {
+    await render();
+  }
+
+  async function render() {
+    $('loading').classList.add('hidden');
+    $('dash').classList.remove('hidden');
+    $('welcome').textContent = `Welcome back, ${guide.name}.`;
+
+    renderStatus();
+    renderPayouts();
+    fillProfile();
+    await renderTours();
+    await renderBookings();
+  }
+
+  function renderStatus() {
+    const map: Record<string, string> = {
+      pending: `<div class="rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800">⏳ Your application is <strong>under review</strong>. You can set up your profile and prices now — they'll go live once approved.</div>`,
+      approved: `<div class="rounded-xl bg-forest/8 border border-forest/15 p-4 text-sm text-forest">✅ You're <strong>approved and live</strong>. Travelers can find and book you.</div>`,
+      rejected: `<div class="rounded-xl bg-red-50 border border-red-200 p-4 text-sm text-red-700">Your application was not approved.${guide.rejection_reason ? ' Reason: ' + guide.rejection_reason : ''}</div>`,
+      suspended: `<div class="rounded-xl bg-red-50 border border-red-200 p-4 text-sm text-red-700">Your account is suspended. Contact support.</div>`,
+    };
+    $('status-banner').innerHTML = map[guide.status] ?? '';
+  }
+
+  function renderPayouts() {
+    const el = $('payout-state');
+    if (guide.stripe_onboarding_done) {
+      el.innerHTML = `<span class="pill-green">✓ Connected — ready for payouts</span>`;
+    } else {
+      el.innerHTML = `<button id="connect-btn" class="btn-gold">${guide.stripe_account_id ? 'Finish Stripe setup' : 'Connect Stripe'}</button>
+        <p class="mt-2 text-xs text-forest/45">You won't receive booking payouts until this is complete.</p>`;
+      $('connect-btn')?.addEventListener('click', startConnect);
+    }
+  }
+
+  async function startConnect(e: Event) {
+    const btn = e.target as HTMLButtonElement;
+    btn.disabled = true; btn.textContent = 'Redirecting…';
+    try {
+      const res = await fetch('/api/connect/onboard', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session!.access_token}` },
+      });
+      const data = await res.json();
+      if (!res.ok || !data.url) throw new Error(data.error || 'Could not start Stripe onboarding.');
+      window.location.href = data.url;
+    } catch (e: any) {
+      alert(e.message); btn.disabled = false; btn.textContent = 'Connect Stripe';
+    }
+  }
+
+  function fillProfile() {
+    (<HTMLInputElement>$('p-name')).value = guide.name ?? '';
+    (<HTMLInputElement>$('p-phone')).value = guide.phone ?? '';
+    (<HTMLInputElement>$('p-years')).value = guide.years_experience ?? 0;
+    (<HTMLInputElement>$('p-license')).value = guide.license_number ?? '';
+    (<HTMLInputElement>$('p-languages')).value = (guide.languages ?? []).join(', ');
+    (<HTMLInputElement>$('p-certs')).value = (guide.certifications ?? []).join(', ');
+    (<HTMLTextAreaElement>$('p-bio')).value = guide.bio ?? '';
+    if (guide.photo_url) (<HTMLImageElement>$('photo-preview')).src = guide.photo_url;
+  }
+
+  // Photo upload
+  $('photo').addEventListener('change', async (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    const path = `${user.id}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+    const { error } = await sb.storage.from('guide-photos').upload(path, file, { upsert: true });
+    if (error) { alert('Upload failed: ' + error.message); return; }
+    const { data: pub } = sb.storage.from('guide-photos').getPublicUrl(path);
+    await sb.from('guides').update({ photo_url: pub.publicUrl }).eq('id', guide.id);
+    guide.photo_url = pub.publicUrl;
+    (<HTMLImageElement>$('photo-preview')).src = pub.publicUrl;
+  });
+
+  // Save profile
+  $('profile-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = $('profile-msg'); msg.textContent = 'Saving…';
+    const patch = {
+      name: (<HTMLInputElement>$('p-name')).value.trim(),
+      phone: (<HTMLInputElement>$('p-phone')).value.trim() || null,
+      years_experience: parseInt((<HTMLInputElement>$('p-years')).value) || 0,
+      license_number: (<HTMLInputElement>$('p-license')).value.trim() || null,
+      languages: toList((<HTMLInputElement>$('p-languages')).value),
+      certifications: toList((<HTMLInputElement>$('p-certs')).value),
+      bio: (<HTMLTextAreaElement>$('p-bio')).value.trim() || null,
+    };
+    const { error } = await sb.from('guides').update(patch).eq('id', guide.id);
+    msg.textContent = error ? 'Error: ' + error.message : 'Saved ✓';
+    if (!error) Object.assign(guide, patch);
+    setTimeout(() => (msg.textContent = ''), 2500);
+  });
+
+  // Tours — guide toggles which tours they offer (pricing set by admin via tiers)
+  async function renderTours() {
+    const { data: tours } = await sb.from('tours').select('id, name, duration_days').eq('is_active', true).order('sort_order');
+    const { data: mine }  = await sb.from('guide_tours').select('*').eq('guide_id', guide.id);
+    const byTour: Record<string, any> = {};
+    (mine ?? []).forEach((m: any) => (byTour[m.tour_id] = m));
+
+    $('tours-list').innerHTML = `
+      <p class="mb-3 text-xs text-forest/55">Toggle the tours you offer. Pricing is set by the platform across three all-inclusive tiers (Essential / Classic / Luxury).</p>
+      ${(tours ?? []).map((t: any) => {
+        const m = byTour[t.id];
+        const active = m?.is_active ?? false;
+        const days = t.duration_days === 1 ? '1 day' : `${t.duration_days} days`;
+        return `
+          <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-forest/10 p-3" data-tour="${t.id}">
+            <label class="flex cursor-pointer items-center gap-2.5 text-sm">
+              <input type="checkbox" class="gt-active h-4 w-4 accent-[#0B3D2E]" ${active ? 'checked' : ''} />
+              <span class="font-medium">${t.name}</span>
+              <span class="text-xs text-forest/40">${days}</span>
+            </label>
+            <button class="gt-save btn-outline !py-1.5 !px-4 text-xs">Save</button>
+            <span class="gt-msg w-full text-xs text-forest/55"></span>
+          </div>`;
+      }).join('')}`;
+
+    $('tours-list').querySelectorAll('.gt-save').forEach((btn) => {
+      btn.addEventListener('click', async (e) => {
+        const row = (e.target as HTMLElement).closest('[data-tour]') as HTMLElement;
+        const tourId = row.dataset.tour!;
+        const active = (row.querySelector('.gt-active') as HTMLInputElement).checked;
+        const msg = row.querySelector('.gt-msg')!;
+        msg.textContent = 'Saving…';
+        const { error } = await sb.from('guide_tours').upsert(
+          { guide_id: guide.id, tour_id: tourId, is_active: active },
+          { onConflict: 'guide_id,tour_id' }
+        );
+        msg.textContent = error ? 'Error: ' + error.message : 'Saved ✓';
+        setTimeout(() => (msg.textContent = ''), 2500);
+      });
+    });
+  }
+
+  // Bookings
+  async function renderBookings() {
+    const { data: bookings } = await sb
+      .from('bookings')
+      .select('*, tour:tours(name)')
+      .eq('guide_id', guide.id)
+      .order('tour_date', { ascending: false });
+
+    const paid = (bookings ?? []).filter((b: any) => b.status === 'paid' || b.status === 'completed');
+    const upcoming = paid.filter((b: any) => new Date(b.tour_date) >= new Date());
+    const earned = paid.reduce((s: number, b: any) => s + (b.guide_payout_cents || 0), 0);
+    $('stat-bookings').textContent = String(paid.length);
+    $('stat-upcoming').textContent = String(upcoming.length);
+    $('stat-earnings').textContent = fmt(earned);
+
+    if (!bookings || bookings.length === 0) {
+      $('bookings-list').innerHTML = `<p class="text-sm text-forest/55">No bookings yet.</p>`;
+      return;
+    }
+    $('bookings-list').innerHTML = `
+      <table class="w-full text-sm">
+        <thead class="text-left text-xs uppercase text-forest/45">
+          <tr><th class="py-2">Tour</th><th>Guest</th><th>Date</th><th>Group</th><th>Your payout</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody class="divide-y divide-forest/8">
+          ${bookings.map((b: any) => `
+            <tr data-booking="${b.id}">
+              <td class="py-2.5 font-medium">${b.tour?.name ?? '—'}</td>
+              <td>${b.guest_name}<br><span class="text-xs text-forest/45">${b.guest_email}</span></td>
+              <td>${new Date(b.tour_date).toLocaleDateString()}</td>
+              <td>${b.group_size}</td>
+              <td class="font-medium">${fmt(b.guide_payout_cents)}</td>
+              <td><span class="pill ${b.status === 'paid' || b.status === 'completed' ? 'pill-green' : b.status === 'cancelled' || b.status === 'refunded' ? 'pill-red' : 'pill-amber'}">${b.status}</span></td>
+              <td>${b.status === 'paid' || b.status === 'pending' ? `<button class="cancel-booking btn-ghost !py-1 !px-2 text-xs text-red-600">Cancel</button>` : ''}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  // Cancel booking
+  document.addEventListener('click', async (e) => {
+    const btn = (e.target as HTMLElement).closest('.cancel-booking') as HTMLElement | null;
+    if (!btn) return;
+    const row = btn.closest('[data-booking]') as HTMLElement;
+    const id = row?.dataset.booking;
+    if (!id) return;
+    const reason = prompt('Reason for cancellation (optional):');
+    if (reason === null) return; // user clicked Cancel in the prompt dialog
+    btn.disabled = true; btn.textContent = 'Cancelling…';
+    try {
+      const res = await fetch('/api/cancel-booking', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session!.access_token}`,
+        },
+        body: JSON.stringify({ booking_id: id, reason }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Cancellation failed.');
+      const msg = data.refundPct === 100 ? 'Full refund issued.' : `${data.refundPct}% refund issued.`;
+      alert(`Booking cancelled. ${msg}`);
+      await renderBookings();
+    } catch (err: any) {
+      alert(err.message);
+      btn.disabled = false; btn.textContent = 'Cancel';
+    }
+  });
+
+  // Availability
+  async function renderAvailability() {
+    const { data: rows } = await sb
+      .from('guide_availability')
+      .select('*')
+      .eq('guide_id', guide.id)
+      .order('unavailable_date');
+
+    const el = $('avail-list');
+    if (!rows || rows.length === 0) {
+      el.innerHTML = '<p class="text-sm text-forest/45">No blocked dates.</p>';
+      return;
+    }
+    el.innerHTML = rows.map((r: any) => `
+      <div class="flex items-center justify-between gap-3 rounded-lg border border-forest/10 px-3 py-2 text-sm" data-avail="${r.id}">
+        <span class="font-medium">${new Date(r.unavailable_date + 'T00:00:00').toLocaleDateString()}</span>
+        ${r.note ? `<span class="text-forest/50 text-xs">${r.note}</span>` : ''}
+        <button class="avail-remove btn-ghost !py-1 !px-2 text-xs text-red-600 ml-auto">Remove</button>
+      </div>`).join('');
+
+    el.querySelectorAll('.avail-remove').forEach((b) => b.addEventListener('click', async (e) => {
+      const id = (e.target as HTMLElement).closest('[data-avail]')!.getAttribute('data-avail')!;
+      await sb.from('guide_availability').delete().eq('id', id);
+      await renderAvailability();
+    }));
+  }
+
+  $('avail-add').addEventListener('click', async () => {
+    const date = ($('avail-date') as HTMLInputElement).value;
+    const note = ($('avail-note') as HTMLInputElement).value.trim() || null;
+    const msg  = $('avail-msg');
+    if (!date) { msg.textContent = 'Choose a date.'; return; }
+    msg.textContent = 'Saving…';
+    const { error } = await sb.from('guide_availability').upsert(
+      { guide_id: guide.id, unavailable_date: date, note },
+      { onConflict: 'guide_id,unavailable_date' }
+    );
+    if (error) { msg.textContent = 'Error: ' + error.message; return; }
+    msg.textContent = 'Blocked ✓';
+    ($('avail-date') as HTMLInputElement).value = '';
+    ($('avail-note') as HTMLInputElement).value = '';
+    setTimeout(() => (msg.textContent = ''), 2000);
+    await renderAvailability();
+  });
+
+  await renderAvailability();
+
+  $('signout').addEventListener('click', async () => {
+    await sb.auth.signOut();
+    window.location.href = '/';
+  });
+</script>

@@ -1,0 +1,33 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import GuideCard from '../../components/GuideCard.astro';
+import { getApprovedGuides } from '../../lib/data';
+
+const env = (Astro.locals as any).runtime?.env;
+const guides = await getApprovedGuides(env);
+---
+<Layout title="Our licensed guides — Bhutan Echoes"
+        description="Meet the licensed local guides of Bhutan Echoes. Experience, languages, certifications and reviews.">
+  <section class="bg-cream-dark border-b border-forest/10">
+    <div class="container-x py-14">
+      <p class="eyebrow">The people</p>
+      <h1 class="mt-2 font-serif text-4xl font-bold sm:text-5xl">Our guides</h1>
+      <p class="mt-3 max-w-2xl text-forest/70">
+        Every guide on Bhutan Echoes is licensed by the Tourism Council of Bhutan
+        and vetted by our team.
+      </p>
+    </div>
+  </section>
+
+  <section class="container-x py-14">
+    {guides.length === 0 ? (
+      <p class="text-forest/60">No guides yet — check back soon.</p>
+    ) : (
+      <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {guides.map((g) => (
+          <GuideCard guide={g} rating={g.rating} reviewCount={g.review_count} />
+        ))}
+      </div>
+    )}
+  </section>
+</Layout>

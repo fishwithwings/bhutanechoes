@@ -1,0 +1,55 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+  jsonLd?: object;
+  bare?: boolean; // hide nav/footer (e.g. checkout)
+}
+const {
+  title = 'Bhutan Echoes — Tour Bhutan with a licensed local guide',
+  description = "Browse 11 all-inclusive Bhutan tours and book a licensed local guide directly. Tiger's Nest, Druk Path, Jumolhari and more.",
+  ogImage,
+  jsonLd,
+  bare = false,
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, 'https://bhutanechoes.com').href;
+const ogImg = ogImage ?? 'https://bhutanechoes.com/images/og-default.jpg';
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={canonical} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImg} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="Bhutan Echoes" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImg} />
+    <meta name="theme-color" content="#0B3D2E" />
+    {jsonLd && <Fragment set:html={`<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`} />}
+  </head>
+  <body class="flex min-h-screen flex-col">
+    {!bare && <Header />}
+    <main class="flex-1">
+      <slot />
+    </main>
+    {!bare && <Footer />}
+  </body>
+</html>

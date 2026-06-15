@@ -1,0 +1,174 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { adminClient } from '../../lib/supabase';
+import { formatDate } from '../../lib/format';
+
+export const prerender = false;
+
+const env = (Astro.locals as any).runtime?.env;
+const { token } = Astro.params;
+
+let booking: any = null;
+let guide: any = null;
+let alreadyReviewed = false;
+let error = '';
+
+try {
+  const supabase = adminClient(env);
+  const { data } = await supabase
+    .from('bookings')
+    .select('*, tour:tours(name), guide:guides(name, photo_url, slug)')
+    .eq('review_token', token ?? '')
+    .maybeSingle();
+
+  if (!data) { error = 'Invalid or expired review link.'; }
+  else if (data.review_submitted_at) { alreadyReviewed = true; booking = data; }
+  else if (!['paid','completed'].includes(data.status)) { error = 'Reviews can only be submitted for completed bookings.'; }
+  else if (new Date(data.tour_date) > new Date()) { error = `Your tour is on ${formatDate(data.tour_date)} — come back after your trip to leave a review!`; }
+  else { booking = data; guide = data.guide; }
+} catch {
+  // Supabase not configured — show a placeholder
+  booking = null;
+}
+---
+<Layout title="Leave a review — Bhutan Echoes">
+  <section class="container-x max-w-lg py-16">
+
+    {error ? (
+      <div class="card p-8 text-center">
+        <p class="text-4xl">🔒</p>
+        <h1 class="mt-4 font-serif text-2xl font-bold">Can't load review</h1>
+        <p class="mt-2 text-forest/65">{error}</p>
+        <a href="/" class="btn-primary mt-6">Go home</a>
+      </div>
+    ) : alreadyReviewed ? (
+      <div class="card p-8 text-center">
+        <p class="text-4xl">✅</p>
+        <h1 class="mt-4 font-serif text-2xl font-bold">Review already submitted</h1>
+        <p class="mt-2 text-forest/65">Thank you — your review for {booking.tour?.name} has been published.</p>
+        {booking.guide && <a href={`/guides/${booking.guide.slug}`} class="btn-outline mt-6">View guide profile</a>}
+      </div>
+    ) : !booking ? (
+      <div class="card p-8 text-center">
+        <p class="text-4xl">🏔️</p>
+        <h1 class="mt-4 font-serif text-2xl font-bold">Leave a review</h1>
+        <p class="mt-2 text-forest/65">
+          {import.meta.env.PUBLIC_SUPABASE_URL
+            ? 'Review link not found.'
+            : 'Connect Supabase to enable reviews.'}
+        </p>
+      </div>
+    ) : (
+      <div>
+        <h1 class="font-serif text-3xl font-bold">How was your tour?</h1>
+        <p class="mt-1 text-forest/65">Your review helps future travelers choose the right guide.</p>
+
+        <!-- Guide card -->
+        {guide && (
+          <div class="card mt-6 flex items-center gap-4 p-4">
+            <img src={guide.photo_url ?? '/images/guide-placeholder.svg'} alt={guide.name}
+                 class="h-14 w-14 flex-none rounded-full object-cover ring-2 ring-gold/20" />
+            <div>
+              <p class="text-xs text-forest/50">Your guide</p>
+              <p class="font-serif text-lg font-semibold">{guide.name}</p>
+              <p class="text-xs text-forest/55">{booking.tour?.name} · {formatDate(booking.tour_date)}</p>
+            </div>
+          </div>
+        )}
+
+        <div id="success" class="hidden mt-8 card p-8 text-center">
+          <p class="text-4xl">🙏</p>
+          <h2 class="mt-4 font-serif text-2xl font-bold">Thank you!</h2>
+          <p class="mt-2 text-forest/65">Your review has been published on {guide?.name}'s profile.</p>
+          {guide && <a href={`/guides/${guide.slug}`} class="btn-primary mt-6">View profile</a>}
+        </div>
+
+        <form id="review-form" class="mt-6 card p-6 space-y-5">
+          <input type="hidden" name="token" value={token} />
+
+          <div>
+            <label class="label">Your rating</label>
+            <div id="star-picker" class="flex gap-2 mt-1" role="group" aria-label="Rating">
+              {[1,2,3,4,5].map((n) => (
+                <button type="button"
+                  class="star-btn text-3xl leading-none transition-transform hover:scale-110"
+                  data-val={n} aria-label={`${n} star${n>1?'s':''}`}>☆</button>
+              ))}
+            </div>
+            <input type="hidden" id="rating-input" name="rating" value="" />
+            <p id="rating-err" class="mt-1 hidden text-xs text-red-600">Please select a rating.</p>
+          </div>
+
+          <div>
+            <label class="label" for="author_name">Your name</label>
+            <input class="input" id="author_name" name="author_name"
+                   value={booking.guest_name ?? ''} required />
+          </div>
+
+          <div>
+            <label class="label" for="comment">Your review</label>
+            <textarea class="textarea" id="comment" name="comment" rows="4"
+                      placeholder="What made this tour special? How was the guide?"></textarea>
+          </div>
+
+          <p id="form-err" class="hidden rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"></p>
+
+          <button type="submit" id="submit-btn" class="btn-gold w-full">Submit review</button>
+        </form>
+      </div>
+    )}
+  </section>
+</Layout>
+
+<script>
+  const stars   = document.querySelectorAll('.star-btn');
+  const input   = document.getElementById('rating-input') as HTMLInputElement;
+  const rErr    = document.getElementById('rating-err')!;
+  const form    = document.getElementById('review-form') as HTMLFormElement;
+  const btn     = document.getElementById('submit-btn') as HTMLButtonElement;
+  const fErr    = document.getElementById('form-err')!;
+  const success = document.getElementById('success')!;
+  let selected  = 0;
+
+  function paintStars(n: number) {
+    stars.forEach((s, i) => {
+      (s as HTMLElement).textContent = i < n ? '★' : '☆';
+      (s as HTMLElement).style.color = i < n ? '#C8860A' : '';
+    });
+  }
+
+  stars.forEach((s) => {
+    const el = s as HTMLElement;
+    el.addEventListener('mouseenter', () => paintStars(Number(el.dataset.val)));
+    el.addEventListener('mouseleave', () => paintStars(selected));
+    el.addEventListener('click', () => {
+      selected = Number(el.dataset.val);
+      input.value = String(selected);
+      rErr.classList.add('hidden');
+      paintStars(selected);
+    });
+  });
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!selected) { rErr.classList.remove('hidden'); return; }
+    fErr.classList.add('hidden');
+    btn.disabled = true; btn.textContent = 'Submitting…';
+
+    const payload = Object.fromEntries(new FormData(form).entries());
+    try {
+      const res  = await fetch('/api/submit-review', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Submission failed.');
+      form.classList.add('hidden');
+      success.classList.remove('hidden');
+    } catch (err: any) {
+      fErr.textContent = err.message;
+      fErr.classList.remove('hidden');
+      btn.disabled = false; btn.textContent = 'Submit review';
+    }
+  });
+</script>

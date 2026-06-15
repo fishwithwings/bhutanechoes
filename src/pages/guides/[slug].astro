@@ -1,0 +1,96 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import StarRating from '../../components/StarRating.astro';
+import { getGuideBySlug } from '../../lib/data';
+import { formatMoney, formatDate, formatDuration } from '../../lib/format';
+
+const env = (Astro.locals as any).runtime?.env;
+const { slug } = Astro.params;
+const profile = await getGuideBySlug(slug!, env);
+if (!profile) return Astro.redirect('/404');
+
+const { guide, tours, reviews, rating, review_count } = profile;
+---
+<Layout title={`${guide.name} — Bhutan guide — Bhutan Echoes`} description={guide.bio ?? undefined}>
+  <section class="bg-forest text-cream">
+    <div class="container-x flex flex-col items-center gap-6 py-14 text-center sm:flex-row sm:text-left">
+      <img src={guide.photo_url ?? '/images/guide-placeholder.svg'} alt={guide.name}
+           class="h-32 w-32 flex-none rounded-full object-cover ring-4 ring-gold/30" />
+      <div>
+        <a href="/guides" class="text-sm text-cream/70 hover:text-gold-light">← All guides</a>
+        <h1 class="mt-1 font-serif text-3xl font-bold text-cream sm:text-4xl">{guide.name}</h1>
+        <div class="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-cream/80 sm:justify-start">
+          {rating > 0 && <StarRating rating={rating} count={review_count} size={15} />}
+          <span>{guide.years_experience}+ years experience</span>
+          {guide.license_number && <span>License {guide.license_number}</span>}
+        </div>
+        <div class="mt-3 flex flex-wrap justify-center gap-2 sm:justify-start">
+          {(guide.languages ?? []).map((l) => <span class="pill bg-white/10 text-cream">{l}</span>)}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="container-x grid gap-12 py-12 lg:grid-cols-[1fr_320px]">
+    <div>
+      <h2 class="font-serif text-2xl font-semibold">About</h2>
+      <p class="mt-3 leading-relaxed text-forest/80 whitespace-pre-line">{guide.bio}</p>
+
+      {guide.certifications?.length > 0 && (
+        <div class="mt-8">
+          <h3 class="font-serif text-xl font-semibold">Certifications</h3>
+          <ul class="mt-3 flex flex-wrap gap-2">
+            {guide.certifications.map((c) => <li class="pill-green">{c}</li>)}
+          </ul>
+        </div>
+      )}
+
+      <!-- Reviews -->
+      <div class="mt-12">
+        <h2 class="font-serif text-2xl font-semibold">
+          Reviews {review_count > 0 && <span class="text-forest/40 text-lg">({review_count})</span>}
+        </h2>
+        {reviews.length === 0 ? (
+          <p class="mt-3 text-forest/55">No reviews yet.</p>
+        ) : (
+          <div class="mt-5 space-y-5">
+            {reviews.map((r) => (
+              <div class="card p-5">
+                <div class="flex items-center justify-between">
+                  <p class="font-medium text-forest">{r.author_name}</p>
+                  <StarRating rating={r.rating} size={14} />
+                </div>
+                {r.comment && <p class="mt-2 text-sm leading-relaxed text-forest/75">{r.comment}</p>}
+                <p class="mt-2 text-xs text-forest/40">{formatDate(r.created_at)}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+
+    <!-- Tours offered -->
+    <aside class="lg:sticky lg:top-24 lg:self-start">
+      <div class="card p-6">
+        <h3 class="font-serif text-lg font-semibold">Tours offered</h3>
+        <div class="mt-4 space-y-3">
+          {tours.length === 0 ? (
+            <p class="text-sm text-forest/55">No tours listed yet.</p>
+          ) : tours.map((gt) => (
+            <a href={`/book?tour=${gt.tour.slug}&guide=${guide.slug}`}
+               class="flex items-center justify-between rounded-xl border border-forest/10 p-3 hover:border-forest/30 hover:bg-forest/5">
+              <div class="min-w-0">
+                <p class="truncate text-sm font-medium text-forest">{gt.tour.name}</p>
+                <p class="text-xs text-forest/50">{formatDuration(gt.tour.duration_days)}</p>
+              </div>
+              <div class="text-right">
+                <p class="font-semibold text-forest">{formatMoney(gt.price_cents)}</p>
+                <p class="text-[10px] text-forest/45">/ person</p>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </aside>
+  </section>
+</Layout>

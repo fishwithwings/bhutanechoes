@@ -1,0 +1,67 @@
+---
+import Layout from '../layouts/Layout.astro';
+export const prerender = false;
+---
+<Layout title="Sign in — Bhutan Echoes">
+  <section class="container-x flex min-h-[70vh] items-center justify-center py-16">
+    <div class="card w-full max-w-md p-8">
+      <h1 class="font-serif text-2xl font-bold">Sign in</h1>
+      <p class="mt-1 text-sm text-forest/60">Guide & admin access.</p>
+
+      <form id="login-form" class="mt-6 space-y-4">
+        <div>
+          <label class="label" for="email">Email</label>
+          <input class="input" type="email" id="email" name="email" required autocomplete="email" />
+        </div>
+        <div>
+          <label class="label" for="password">Password</label>
+          <input class="input" type="password" id="password" name="password" required autocomplete="current-password" />
+        </div>
+        <p id="err" class="hidden rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"></p>
+        <button type="submit" id="btn" class="btn-primary w-full">Sign in</button>
+      </form>
+
+      <p class="mt-5 text-center text-sm text-forest/60">
+        New guide? <a href="/register" class="font-medium text-gold-dark hover:underline">Apply here</a>
+      </p>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  import { browserClient } from '../lib/supabase-browser';
+
+  const form = document.getElementById('login-form') as HTMLFormElement;
+  const err = document.getElementById('err')!;
+  const btn = document.getElementById('btn') as HTMLButtonElement;
+
+  // Already signed in? Send to the right place.
+  async function routeByRole() {
+    const sb = browserClient();
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return;
+    const { data: profile } = await sb.from('profiles').select('role').eq('id', user.id).maybeSingle();
+    window.location.href = profile?.role === 'admin' ? '/admin' : '/dashboard';
+  }
+  routeByRole().catch(() => {});
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    err.classList.add('hidden');
+    btn.disabled = true; btn.textContent = 'Signing in…';
+    const fd = new FormData(form);
+    try {
+      const sb = browserClient();
+      const { error } = await sb.auth.signInWithPassword({
+        email: String(fd.get('email')),
+        password: String(fd.get('password')),
+      });
+      if (error) throw error;
+      await routeByRole();
+    } catch (e: any) {
+      err.textContent = e.message ?? 'Sign in failed.';
+      err.classList.remove('hidden');
+      btn.disabled = false; btn.textContent = 'Sign in';
+    }
+  });
+</script>

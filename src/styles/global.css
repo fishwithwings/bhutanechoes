@@ -1,0 +1,75 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-cream text-forest-900 font-sans antialiased;
+  }
+  h1, h2, h3, h4 {
+    @apply font-serif text-forest;
+  }
+}
+
+@layer components {
+  .container-x {
+    @apply mx-auto w-full max-w-content px-5 sm:px-8;
+  }
+
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3
+           text-sm font-semibold transition-all duration-200 focus:outline-none
+           focus-visible:ring-2 focus-visible:ring-gold/60 disabled:opacity-50
+           disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply btn bg-forest text-cream hover:bg-forest-600 shadow-sm hover:shadow-md;
+  }
+  .btn-gold {
+    @apply btn bg-gold text-white hover:bg-gold-dark shadow-sm hover:shadow-md;
+  }
+  .btn-outline {
+    @apply btn border border-forest/25 text-forest hover:border-forest hover:bg-forest/5;
+  }
+  .btn-ghost {
+    @apply btn text-forest hover:bg-forest/5;
+  }
+
+  /* Cards */
+  .card {
+    @apply rounded-2xl bg-white shadow-sm ring-1 ring-forest/5 overflow-hidden
+           transition-shadow duration-200;
+  }
+  .card-hover {
+    @apply card hover:shadow-xl hover:ring-forest/10;
+  }
+
+  /* Form fields */
+  .label {
+    @apply block text-sm font-medium text-forest-900 mb-1.5;
+  }
+  .input, .select, .textarea {
+    @apply w-full rounded-xl border border-forest/15 bg-white px-4 py-2.5 text-sm
+           text-forest-900 placeholder:text-forest/40
+           focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/15;
+  }
+
+  /* Badges / pills */
+  .pill {
+    @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium;
+  }
+  .pill-gold  { @apply pill bg-gold/10 text-gold-dark; }
+  .pill-green { @apply pill bg-forest/10 text-forest; }
+  .pill-amber { @apply pill bg-amber-100 text-amber-800; }
+  .pill-red   { @apply pill bg-red-100 text-red-700; }
+
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.18em] text-gold-dark;
+  }
+}

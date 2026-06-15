@@ -1,0 +1,18 @@
+---
+interface Props { rating: number; count?: number; size?: number; }
+const { rating, count, size = 16 } = Astro.props;
+const full = Math.round(rating);
+---
+<span class="inline-flex items-center gap-1.5">
+  <span class="inline-flex" aria-label={`${rating} out of 5`}>
+    {Array.from({ length: 5 }).map((_, i) => (
+      <svg width={size} height={size} viewBox="0 0 20 20"
+        fill={i < full ? '#C8860A' : 'none'} stroke="#C8860A" stroke-width="1.5">
+        <path d="M10 1.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8L10 15l-5.3 2.6 1-5.8L1.5 7.7l5.9-.9z"/>
+      </svg>
+    ))}
+  </span>
+  {count !== undefined && (
+    <span class="text-xs text-forest/55">{rating.toFixed(1)} ({count})</span>
+  )}
+</span>

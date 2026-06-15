@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5B6E8C"/><stop offset="100%" stop-color="#0B2E3D"/></linearGradient></defs>
+  <rect width="800" height="600" fill="url(#g)"/>
+  <path d="M0 430 L160 300 L300 410 L460 250 L620 400 L800 290 L800 600 L0 600 Z" fill="#000" opacity="0.18"/>
+  <path d="M0 480 L200 380 L380 470 L560 360 L800 470 L800 600 L0 600 Z" fill="#000" opacity="0.25"/>
+  <text x="400" y="300" font-size="34" text-anchor="middle" font-family="Georgia,serif" font-style="italic" fill="#FAF7F0" opacity="0.9">Western Bhutan</text>
+</svg>

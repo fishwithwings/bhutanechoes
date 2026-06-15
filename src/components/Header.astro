@@ -1,0 +1,74 @@
+---
+const path = Astro.url.pathname;
+const isActive = (href: string) =>
+  href === '/' ? path === '/' : path.startsWith(href);
+
+const links = [
+  { href: '/tours', label: 'Tours' },
+  { href: '/guides', label: 'Guides' },
+  { href: '/about', label: 'How it works' },
+  { href: '/for-guides', label: 'Become a guide' },
+];
+---
+
+<header class="sticky top-0 z-40 border-b border-forest/10 bg-cream/85 backdrop-blur">
+  <nav class="container-x flex h-16 items-center justify-between">
+    <a href="/" class="flex items-center">
+      <img src="/logo.svg" alt="Bhutan Echoes" width="160" height="42" class="h-9 w-auto" />
+    </a>
+
+    <div class="hidden items-center gap-1 md:flex">
+      {links.map((l) => (
+        <a
+          href={l.href}
+          class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+            isActive(l.href)
+              ? 'text-forest bg-forest/8'
+              : 'text-forest/70 hover:text-forest hover:bg-forest/5'
+          }`}
+        >{l.label}</a>
+      ))}
+    </div>
+
+    <div class="flex items-center gap-2">
+      <a id="nav-dashboard" href="/dashboard" class="hidden btn-ghost sm:inline-flex">Dashboard</a>
+      <a id="nav-signin" href="/login" class="hidden btn-ghost sm:inline-flex">Sign in</a>
+      <a href="/tours" class="btn-gold">Book a tour</a>
+
+      <button id="menu-btn" class="md:hidden p-2 text-forest" aria-label="Menu">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+  </nav>
+
+  <div id="mobile-menu" class="hidden border-t border-forest/10 bg-cream md:hidden">
+    <div class="container-x flex flex-col py-3">
+      {links.map((l) => (
+        <a href={l.href} class="rounded-lg px-3 py-2.5 text-sm font-medium text-forest/80 hover:bg-forest/5">{l.label}</a>
+      ))}
+      <a href="/login" class="rounded-lg px-3 py-2.5 text-sm font-medium text-forest/80 hover:bg-forest/5">Sign in</a>
+    </div>
+  </div>
+</header>
+
+<script>
+  const btn = document.getElementById('menu-btn');
+  const menu = document.getElementById('mobile-menu');
+  btn?.addEventListener('click', () => menu?.classList.toggle('hidden'));
+
+  // Show Dashboard vs Sign in based on session
+  try {
+    const { browserClient } = await import('../lib/supabase-browser');
+    const sb = browserClient();
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      document.getElementById('nav-dashboard')?.classList.remove('hidden');
+    } else {
+      document.getElementById('nav-signin')?.classList.remove('hidden');
+    }
+  } catch {
+    document.getElementById('nav-signin')?.classList.remove('hidden');
+  }
+</script>

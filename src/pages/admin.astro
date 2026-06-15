@@ -1,0 +1,312 @@
+---
+import Layout from '../layouts/Layout.astro';
+export const prerender = false;
+---
+<Layout title="Admin — Bhutan Echoes">
+  <section class="container-x py-10">
+    <div id="loading" class="py-20 text-center text-forest/50">Loading admin…</div>
+    <div id="denied" class="hidden py-20 text-center">
+      <h1 class="font-serif text-2xl font-bold">Access denied</h1>
+      <p class="mt-2 text-forest/60">This area is for administrators only.</p>
+      <a href="/" class="btn-primary mt-6">Go home</a>
+    </div>
+
+    <div id="admin" class="hidden space-y-10">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <h1 class="font-serif text-3xl font-bold">Admin panel</h1>
+        <button id="signout" class="btn-outline">Sign out</button>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex gap-2 border-b border-forest/10">
+        <button class="tab-btn" data-tab="guides">Guides</button>
+        <button class="tab-btn" data-tab="tours">Tours</button>
+        <button class="tab-btn" data-tab="bookings">Bookings</button>
+        <button class="tab-btn" data-tab="reviews">Reviews</button>
+      </div>
+
+      <div id="tab-guides" class="tab-panel space-y-4"></div>
+      <div id="tab-tours" class="tab-panel hidden space-y-4"></div>
+      <div id="tab-bookings" class="tab-panel hidden"></div>
+      <div id="tab-reviews" class="tab-panel hidden space-y-4"></div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .tab-btn {
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgba(11, 61, 46, 0.55);
+    border-bottom: 2px solid transparent;
+  }
+  .tab-btn.active { color: #0B3D2E; border-bottom-color: #C8860A; }
+</style>
+
+<script>
+  import { browserClient } from '../lib/supabase-browser';
+
+  const fmt = (c: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(c / 100);
+  const $ = (id: string) => document.getElementById(id)!;
+
+  let sb: ReturnType<typeof browserClient>;
+  try { sb = browserClient(); } catch (e: any) { $('loading').textContent = e.message; throw e; }
+
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = '/login'; }
+  const { data: profile } = await sb.from('profiles').select('role').eq('id', session!.user.id).maybeSingle();
+
+  if (profile?.role !== 'admin') {
+    $('loading').classList.add('hidden');
+    $('denied').classList.remove('hidden');
+  } else {
+    $('loading').classList.add('hidden');
+    $('admin').classList.remove('hidden');
+    setupTabs();
+    await Promise.all([renderGuides(), renderTours(), renderBookings(), renderReviews()]);
+  }
+
+  function setupTabs() {
+    const btns = document.querySelectorAll('.tab-btn');
+    btns.forEach((b) => b.addEventListener('click', () => {
+      btns.forEach((x) => x.classList.remove('active'));
+      b.classList.add('active');
+      document.querySelectorAll('.tab-panel').forEach((p) => p.classList.add('hidden'));
+      $(`tab-${(b as HTMLElement).dataset.tab}`).classList.remove('hidden');
+    }));
+    (btns[0] as HTMLElement).click();
+  }
+
+  // ---- GUIDES (approve / reject) ----
+  async function renderGuides() {
+    const { data: guides } = await sb.from('guides').select('*').order('created_at', { ascending: false });
+    const groups: Record<string, any[]> = { pending: [], approved: [], rejected: [], suspended: [] };
+    (guides ?? []).forEach((g: any) => groups[g.status]?.push(g));
+
+    const section = (title: string, list: any[]) => list.length === 0 ? '' : `
+      <h3 class="font-serif text-lg font-semibold mt-6">${title} <span class="text-forest/40">(${list.length})</span></h3>
+      <div class="space-y-3">${list.map(guideRow).join('')}</div>`;
+
+    $('tab-guides').innerHTML =
+      section('Pending review', groups.pending) +
+      section('Approved', groups.approved) +
+      section('Rejected', groups.rejected) +
+      section('Suspended', groups.suspended) ||
+      '<p class="text-forest/55">No guides yet.</p>';
+
+    bindGuideActions();
+  }
+
+  function guideRow(g: any) {
+    return `
+      <div class="card p-4" data-guide="${g.id}">
+        <div class="flex flex-wrap items-start gap-4">
+          <img src="${g.photo_url ?? '/images/guide-placeholder.svg'}" class="h-14 w-14 rounded-full object-cover" />
+          <div class="min-w-0 flex-1">
+            <p class="font-medium">${g.name} <span class="text-xs text-forest/45">· ${g.email ?? ''}</span></p>
+            <p class="text-xs text-forest/55">License ${g.license_number ?? '—'} · ${g.years_experience}+ yrs · ${(g.languages ?? []).join(', ')}</p>
+            <p class="mt-1 text-sm text-forest/70">${g.bio ?? ''}</p>
+          </div>
+          <div class="flex flex-col gap-2">
+            ${g.status !== 'approved' ? `<button class="g-approve btn-primary !py-1.5 !px-4 text-xs">Approve</button>` : ''}
+            ${g.status !== 'rejected' ? `<button class="g-reject btn-outline !py-1.5 !px-4 text-xs">Reject</button>` : ''}
+            ${g.status === 'approved' ? `<a href="/guides/${g.slug}" class="btn-ghost !py-1.5 !px-4 text-xs">View</a>` : ''}
+          </div>
+        </div>
+        <span class="g-msg text-xs text-forest/55"></span>
+      </div>`;
+  }
+
+  function bindGuideActions() {
+    const setStatus = async (id: string, status: string, reason: string | null = null) => {
+      const { error } = await sb.from('guides').update({ status, rejection_reason: reason }).eq('id', id);
+      if (error) { alert(error.message); return; }
+      await renderGuides();
+    };
+    document.querySelectorAll('.g-approve').forEach((b) => b.addEventListener('click', (e) => {
+      const id = (e.target as HTMLElement).closest('[data-guide]')!.getAttribute('data-guide')!;
+      setStatus(id, 'approved');
+    }));
+    document.querySelectorAll('.g-reject').forEach((b) => b.addEventListener('click', (e) => {
+      const id = (e.target as HTMLElement).closest('[data-guide]')!.getAttribute('data-guide')!;
+      const reason = prompt('Reason for rejection (optional):') ?? null;
+      setStatus(id, 'rejected', reason);
+    }));
+  }
+
+  // ---- TOURS (manage tiers + active) ----
+  async function renderTours() {
+    const { data: tours } = await sb.from('tours').select('*').order('sort_order');
+    const tourIds = (tours ?? []).map((t: any) => t.id);
+    const { data: allTiers } = tourIds.length
+      ? await sb.from('tour_tiers').select('*').in('tour_id', tourIds).order('sort_order')
+      : { data: [] };
+
+    const tiersByTour: Record<string, any[]> = {};
+    (allTiers ?? []).forEach((t: any) => {
+      if (!tiersByTour[t.tour_id]) tiersByTour[t.tour_id] = [];
+      tiersByTour[t.tour_id].push(t);
+    });
+
+    $('tab-tours').innerHTML = `
+      <p class="text-sm text-forest/60">
+        Each tour has three all-inclusive tiers. Edit prices (per person, in USD) and save individually.
+      </p>
+      <div class="space-y-4">${(tours ?? []).map((t: any) => tourRow(t, tiersByTour[t.id] ?? [])).join('')}</div>`;
+
+    document.querySelectorAll('.t-active-save').forEach((b) => b.addEventListener('click', async (e) => {
+      const row = (e.target as HTMLElement).closest('[data-tour]') as HTMLElement;
+      const id = row.dataset.tour!;
+      const active = (row.querySelector('.t-active') as HTMLInputElement).checked;
+      const msg = row.querySelector('.t-active-msg')!;
+      msg.textContent = 'Saving…';
+      const { error } = await sb.from('tours').update({ is_active: active }).eq('id', id);
+      msg.textContent = error ? error.message : 'Saved ✓';
+      setTimeout(() => (msg.textContent = ''), 2500);
+    }));
+
+    document.querySelectorAll('.tier-save').forEach((b) => b.addEventListener('click', async (e) => {
+      const btn = e.target as HTMLElement;
+      const tierId = btn.dataset.tierId!;
+      const inp = document.getElementById(`tier-price-${tierId}`) as HTMLInputElement;
+      const msg = document.getElementById(`tier-msg-${tierId}`)!;
+      const cents = Math.round(parseFloat(inp.value) * 100);
+      if (isNaN(cents) || cents < 100) { msg.textContent = 'Enter a valid price.'; return; }
+      msg.textContent = 'Saving…';
+      const { error } = await sb.from('tour_tiers').update({ price_cents: cents }).eq('id', tierId);
+      msg.textContent = error ? error.message : 'Saved ✓';
+      setTimeout(() => (msg.textContent = ''), 2500);
+    }));
+  }
+
+  const TIER_ICON: Record<string, string> = { basic: '🏕️', classic: '⭐', luxury: '💎' };
+  const TIER_LABEL: Record<string, string> = { basic: 'Essential', classic: 'Classic', luxury: 'Luxury' };
+
+  function tourRow(t: any, tiers: any[]) {
+    const tierRows = tiers.map((tier) => `
+      <div class="flex flex-wrap items-center gap-2 py-2 border-b border-forest/5 last:border-0">
+        <span class="w-28 text-sm font-medium">${TIER_ICON[tier.key]} ${TIER_LABEL[tier.key]}</span>
+        <span class="text-xs text-forest/40 flex-1 truncate">${(tier.includes ?? []).slice(0,2).join(' · ')}</span>
+        <div class="flex items-center gap-1.5">
+          <span class="text-xs text-forest/50">$</span>
+          <input type="number" id="tier-price-${tier.id}" class="input !w-24 !py-1 text-sm" value="${tier.price_cents/100}" step="10" />
+          <button class="tier-save btn-outline !py-1 !px-3 text-xs" data-tier-id="${tier.id}">Save</button>
+          <span id="tier-msg-${tier.id}" class="text-xs text-forest/55 w-16"></span>
+        </div>
+      </div>`).join('');
+
+    return `
+      <div class="card p-4" data-tour="${t.id}">
+        <div class="flex flex-wrap items-center gap-3 mb-3">
+          <span class="font-medium flex-1">${t.name}</span>
+          <label class="flex items-center gap-1.5 text-xs cursor-pointer">
+            <input type="checkbox" class="t-active h-4 w-4 accent-[#0B3D2E]" ${t.is_active ? 'checked' : ''}/> Active
+          </label>
+          <button class="t-active-save btn-outline !py-1 !px-3 text-xs">Save</button>
+          <span class="t-active-msg text-xs text-forest/55 w-16"></span>
+        </div>
+        <div class="rounded-lg bg-cream-dark p-3">${tierRows || '<p class="text-xs text-forest/45">No tiers yet — run migration 0008.</p>'}</div>
+      </div>`;
+  }
+
+  // ---- BOOKINGS (view all) ----
+  async function renderBookings() {
+    const { data: bookings } = await sb
+      .from('bookings')
+      .select('*, tour:tours(name), guide:guides(name)')
+      .order('created_at', { ascending: false });
+
+    const total = (bookings ?? []).filter((b: any) => b.status === 'paid' || b.status === 'completed');
+    const revenue = total.reduce((s: number, b: any) => s + (b.total_price_cents || 0), 0);
+    const commission = total.reduce((s: number, b: any) => s + (b.commission_cents || 0), 0);
+
+    $('tab-bookings').innerHTML = `
+      <div class="grid grid-cols-3 gap-4 mb-6">
+        <div class="card p-5 text-center"><p class="font-serif text-2xl font-bold text-forest">${total.length}</p><p class="text-xs text-forest/55">Paid bookings</p></div>
+        <div class="card p-5 text-center"><p class="font-serif text-2xl font-bold text-forest">${fmt(revenue)}</p><p class="text-xs text-forest/55">Gross revenue</p></div>
+        <div class="card p-5 text-center"><p class="font-serif text-2xl font-bold text-gold-dark">${fmt(commission)}</p><p class="text-xs text-forest/55">Platform commission</p></div>
+      </div>
+      ${(!bookings || bookings.length === 0) ? '<p class="text-forest/55">No bookings yet.</p>' : `
+      <div class="overflow-x-auto card p-4">
+        <table class="w-full text-sm">
+          <thead class="text-left text-xs uppercase text-forest/45">
+            <tr><th class="py-2">Date</th><th>Tour</th><th>Guide</th><th>Guest</th><th>Group</th><th>Total</th><th>Commission</th><th>Status</th></tr>
+          </thead>
+          <tbody class="divide-y divide-forest/8">
+            ${bookings.map((b: any) => `
+              <tr>
+                <td class="py-2.5">${new Date(b.tour_date).toLocaleDateString()}</td>
+                <td>${b.tour?.name ?? '—'}</td>
+                <td>${b.guide?.name ?? '—'}</td>
+                <td>${b.guest_name}<br><span class="text-xs text-forest/45">${b.guest_email}</span></td>
+                <td>${b.group_size}</td>
+                <td class="font-medium">${fmt(b.total_price_cents)}</td>
+                <td class="text-gold-dark">${fmt(b.commission_cents)}</td>
+                <td><span class="pill ${b.status === 'paid' || b.status === 'completed' ? 'pill-green' : b.status === 'pending' ? 'pill-amber' : 'pill-red'}">${b.status}</span></td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`}`;
+  }
+
+  // ---- REVIEWS (moderate) ----
+  async function renderReviews() {
+    const { data: reviews } = await sb
+      .from('reviews')
+      .select('*, guide:guides(name, slug), booking:bookings(tour:tours(name))')
+      .order('created_at', { ascending: false });
+
+    if (!reviews || reviews.length === 0) {
+      $('tab-reviews').innerHTML = '<p class="text-forest/55">No reviews yet.</p>';
+      return;
+    }
+
+    const stars = (n: number) => '★'.repeat(n) + '☆'.repeat(5 - n);
+
+    $('tab-reviews').innerHTML = `
+      <p class="text-sm text-forest/60">${reviews.length} review${reviews.length === 1 ? '' : 's'} total</p>
+      <div class="space-y-3">
+        ${reviews.map((r: any) => `
+          <div class="card p-4" data-review="${r.id}">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-gold-dark text-sm">${stars(r.rating)}</span>
+                  <span class="font-medium text-sm">${r.author_name}</span>
+                  <span class="text-xs text-forest/45">${new Date(r.created_at).toLocaleDateString()}</span>
+                  <span class="pill ${r.is_published ? 'pill-green' : 'pill-amber'} text-xs">${r.is_published ? 'Published' : 'Hidden'}</span>
+                </div>
+                <p class="text-xs text-forest/50 mt-0.5">${(r.guide?.name ?? '—')} · ${(r.booking?.tour?.name ?? '—')}</p>
+                ${r.comment ? `<p class="mt-2 text-sm text-forest/75">${r.comment}</p>` : ''}
+              </div>
+              <div class="flex gap-2 flex-none">
+                ${r.is_published
+                  ? `<button class="r-hide btn-outline !py-1 !px-3 text-xs">Hide</button>`
+                  : `<button class="r-publish btn-primary !py-1 !px-3 text-xs">Publish</button>`}
+                <button class="r-delete btn-outline !py-1 !px-3 text-xs text-red-600 border-red-200">Delete</button>
+              </div>
+            </div>
+          </div>`).join('')}
+      </div>`;
+
+    document.querySelectorAll('.r-publish').forEach((b) => b.addEventListener('click', async (e) => {
+      const id = (e.target as HTMLElement).closest('[data-review]')!.getAttribute('data-review')!;
+      await sb.from('reviews').update({ is_published: true }).eq('id', id);
+      await renderReviews();
+    }));
+    document.querySelectorAll('.r-hide').forEach((b) => b.addEventListener('click', async (e) => {
+      const id = (e.target as HTMLElement).closest('[data-review]')!.getAttribute('data-review')!;
+      await sb.from('reviews').update({ is_published: false }).eq('id', id);
+      await renderReviews();
+    }));
+    document.querySelectorAll('.r-delete').forEach((b) => b.addEventListener('click', async (e) => {
+      if (!confirm('Delete this review? This cannot be undone.')) return;
+      const id = (e.target as HTMLElement).closest('[data-review]')!.getAttribute('data-review')!;
+      await sb.from('reviews').delete().eq('id', id);
+      await renderReviews();
+    }));
+  }
+
+  $('signout').addEventListener('click', async () => { await sb.auth.signOut(); window.location.href = '/'; });
+</script>

@@ -1,0 +1,478 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import StarRating from '../../components/StarRating.astro';
+import { getTourBySlug, getGuidesForTour, getTiersForTour } from '../../lib/data';
+import { formatMoney, formatDuration, difficultyLabel } from '../../lib/format';
+
+const env = (Astro.locals as any).runtime?.env;
+const { slug } = Astro.params;
+const tour = await getTourBySlug(slug!, env);
+if (!tour) return Astro.redirect('/404');
+
+const [guides, tiers] = await Promise.all([
+  getGuidesForTour(tour.id, env),
+  getTiersForTour(tour.id, env),
+]);
+
+const tierIcons: Record<string, string> = {
+  basic: '🏕️', classic: '⭐', luxury: '💎',
+};
+const tierColors: Record<string, string> = {
+  basic:   'border-forest/15 hover:border-forest/30',
+  classic: 'border-gold/40   hover:border-gold ring-1 ring-gold/10',
+  luxury:  'border-amber-400/50 hover:border-amber-400',
+};
+const tierBadge: Record<string, string> = {
+  basic:   'bg-forest/8 text-forest',
+  classic: 'bg-gold/10 text-gold-dark',
+  luxury:  'bg-amber-100 text-amber-800',
+};
+---
+<Layout
+  title={`${tour.name} — Bhutan Echoes`}
+  description={tour.summary ?? undefined}
+  ogImage={tour.image_url?.startsWith('http') ? tour.image_url : undefined}
+  jsonLd={{
+    "@context": "https://schema.org",
+    "@type": "TouristTrip",
+    "name": tour.name,
+    "description": tour.summary,
+    "touristType": "Adventure",
+    "itinerary": { "@type": "ItemList", "numberOfItems": tour.duration_days },
+    "provider": { "@type": "Organization", "name": "Bhutan Echoes", "url": "https://bhutanechoes.com" },
+  }}
+>
+
+  <!-- Hero -->
+  <section class="relative">
+    <div class="relative h-[42vh] min-h-[320px]">
+      <img src={tour.image_url ?? '/images/placeholder.svg'} alt={tour.name} class="h-full w-full object-cover" />
+      <div class="absolute inset-0 bg-gradient-to-t from-forest-900/80 to-forest-900/20"></div>
+      <div class="container-x absolute inset-x-0 bottom-0 pb-8 text-cream">
+        <a href="/tours" class="text-sm text-cream/80 hover:text-gold-light">← All tours</a>
+        <div class="mt-2 flex flex-wrap items-center gap-2">
+          <span class="pill bg-white/15 text-cream">{tour.region}</span>
+          <span class="pill bg-white/15 text-cream">{formatDuration(tour.duration_days)}</span>
+          <span class="pill bg-white/15 text-cream">{difficultyLabel(tour.difficulty)}</span>
+        </div>
+        <h1 class="mt-2 max-w-3xl font-serif text-3xl font-bold text-cream sm:text-5xl">{tour.name}</h1>
+      </div>
+    </div>
+  </section>
+
+  <!-- Gallery strip -->
+  {tour.gallery?.length > 0 && (
+    <div class="container-x mt-4 grid gap-2 grid-cols-3 sm:grid-cols-4 h-40 sm:h-52">
+      {tour.gallery.slice(0, 4).map((src, i) => (
+        <div class={`overflow-hidden rounded-xl ${i === 0 ? 'col-span-2 row-span-1' : ''}`}>
+          <img src={src} alt={`${tour.name} photo ${i + 1}`}
+               class="h-full w-full object-cover transition-transform duration-300 hover:scale-105" loading="lazy" />
+        </div>
+      ))}
+    </div>
+  )}
+
+  <section class="container-x grid gap-12 py-12 lg:grid-cols-[1fr_360px]">
+
+    <!-- Left -->
+    <div>
+      <p class="text-lg leading-relaxed text-forest/80">{tour.summary}</p>
+      <p class="mt-4 leading-relaxed text-forest/70 whitespace-pre-line">{tour.description}</p>
+
+      {tour.highlights?.length > 0 && (
+        <div class="mt-8">
+          <h2 class="font-serif text-2xl font-semibold">Highlights</h2>
+          <ul class="mt-4 grid gap-3 sm:grid-cols-2">
+            {tour.highlights.map((h) => (
+              <li class="flex items-start gap-2.5 text-sm text-forest/80">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" class="mt-0.5 flex-none">
+                  <circle cx="10" cy="10" r="10" fill="#C8860A" opacity="0.15"/>
+                  <path d="M6 10l2.5 2.5L14 7" stroke="#C8860A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                {h}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <!-- ── Itinerary ────────────────────────────────────────────────── -->
+      {tour.itinerary && tour.itinerary.length > 0 && (
+        <div class="mt-12">
+          <h2 class="font-serif text-2xl font-semibold">Day-by-day itinerary</h2>
+          <div class="mt-5 space-y-3" id="itinerary-list">
+            {tour.itinerary.map((day) => (
+              <details class="group rounded-2xl border border-forest/12 bg-white open:shadow-sm transition-shadow">
+                <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 select-none">
+                  <div class="flex items-center gap-3">
+                    <span class="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-gold/10 font-serif text-sm font-bold text-gold-dark">
+                      {day.day}
+                    </span>
+                    <span class="font-medium text-forest">{day.title}</span>
+                  </div>
+                  <svg class="flex-none text-forest/40 transition-transform group-open:rotate-180" width="18" height="18" viewBox="0 0 18 18" fill="none">
+                    <path d="M4.5 6.75L9 11.25l4.5-4.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </summary>
+                <div class="border-t border-forest/8 px-5 pb-5 pt-4">
+                  <p class="text-sm leading-relaxed text-forest/70">{day.description}</p>
+                </div>
+              </details>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <!-- ── Map ───────────────────────────────────────────────────────── -->
+      {tour.map_points && tour.map_points.length > 0 && (
+        <div class="mt-12">
+          <h2 class="font-serif text-2xl font-semibold">Tour locations</h2>
+          <p class="mt-1 text-sm text-forest/60">Key stops and landmarks on this tour.</p>
+          <div id="tour-map" class="mt-5 h-72 w-full rounded-2xl overflow-hidden border border-forest/10 z-0"
+               data-points={JSON.stringify(tour.map_points)}></div>
+        </div>
+      )}
+
+      <!-- ── Tier selector ─────────────────────────────────────────────── -->
+      <div class="mt-12" id="packages">
+        <h2 class="font-serif text-2xl font-semibold">Choose your package</h2>
+        <p class="mt-1 text-sm text-forest/60">All prices are per person, fully inclusive — hotels, meals, SDF, guide & transport.</p>
+
+        {tiers.length === 0 ? (
+          <p class="mt-4 text-forest/55">Package pricing coming soon.</p>
+        ) : (
+          <div class="mt-5 grid gap-4 sm:grid-cols-3">
+            {tiers.map((tier) => (
+              <div class={`card cursor-pointer rounded-2xl border-2 p-5 transition-all duration-200 ${tierColors[tier.key]}`}
+                   data-tier={tier.key} id={`tier-${tier.key}`}>
+                <div class="flex items-center justify-between">
+                  <span class={`pill text-xs font-semibold ${tierBadge[tier.key]}`}>
+                    {tierIcons[tier.key]} {tier.label}
+                  </span>
+                  {tier.key === 'classic' && (
+                    <span class="pill bg-gold text-white text-[10px] font-bold">POPULAR</span>
+                  )}
+                </div>
+                <p class="mt-3 text-xs text-forest/55">{tier.tagline}</p>
+                <p class="mt-2 font-serif text-2xl font-bold text-forest">{formatMoney(tier.price_cents)}</p>
+                <p class="text-[11px] text-forest/50">per person, all-inclusive</p>
+
+                <ul class="mt-4 space-y-1.5 border-t border-forest/8 pt-4">
+                  {tier.includes.map((item) => (
+                    <li class="flex items-start gap-2 text-xs text-forest/70">
+                      <svg width="14" height="14" viewBox="0 0 14 14" class="mt-0.5 flex-none" fill="none">
+                        <circle cx="7" cy="7" r="7" fill="#0B3D2E" opacity="0.1"/>
+                        <path d="M4 7l2 2 4-4" stroke="#0B3D2E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <!-- ── Guide selector ────────────────────────────────────────────── -->
+      <div class="mt-12" id="guides">
+        <h2 class="font-serif text-2xl font-semibold">Choose your guide</h2>
+        <p class="mt-1 text-sm text-forest/60">
+          {guides.length} licensed guide{guides.length === 1 ? '' : 's'} available for this tour.
+        </p>
+
+        {guides.length === 0 ? (
+          <div class="mt-6 rounded-2xl border border-dashed border-forest/20 p-8 text-center text-forest/60">
+            No guides are listed yet. <a href="/for-guides" class="text-gold-dark underline">Become a guide</a>.
+          </div>
+        ) : (
+          <div class="mt-5 space-y-3">
+            {guides.map((g) => (
+              <div class="card p-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <a href={`/guides/${g.slug}`} class="flex flex-1 items-center gap-4 min-w-0">
+                  <img src={g.photo_url ?? '/images/guide-placeholder.svg'} alt={g.name}
+                       class="h-14 w-14 flex-none rounded-full object-cover ring-2 ring-gold/20" />
+                  <div class="min-w-0">
+                    <h3 class="font-serif text-base font-semibold text-forest">{g.name}</h3>
+                    {g.rating > 0
+                      ? <div class="mt-0.5"><StarRating rating={g.rating} count={g.review_count} size={13} /></div>
+                      : <p class="mt-0.5 text-xs text-forest/45">New guide</p>}
+                    <p class="mt-1 text-xs text-forest/55">{g.years_experience}+ yrs · {(g.languages ?? []).join(', ')}</p>
+                  </div>
+                </a>
+                <button
+                  class="book-btn btn-gold whitespace-nowrap"
+                  data-guide={g.slug}
+                  data-guide-name={g.name}
+                  data-guide-photo={g.photo_url ?? '/images/guide-placeholder.svg'}
+                  data-guide-email={g.email ?? ''}
+                  data-guide-phone={g.phone ?? ''}
+                  data-tour={tour.slug}
+                  data-tour-name={tour.name}>
+                  Book this guide →
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+
+    <!-- Right: sticky summary -->
+    <aside class="lg:sticky lg:top-24 lg:self-start">
+      <div class="card p-6">
+        <p class="eyebrow">Starting from</p>
+        <p id="aside-price" class="mt-1 font-serif text-3xl font-bold text-forest">
+          {tiers[0] ? formatMoney(tiers[0].price_cents) : '—'}
+        </p>
+        <p class="text-xs text-forest/50">per person · fully inclusive</p>
+
+        <dl class="mt-5 space-y-2.5 border-t border-forest/8 pt-4 text-sm">
+          <div class="flex justify-between"><dt class="text-forest/55">Duration</dt><dd class="font-medium">{formatDuration(tour.duration_days)}</dd></div>
+          <div class="flex justify-between"><dt class="text-forest/55">Difficulty</dt><dd class="font-medium">{difficultyLabel(tour.difficulty)}</dd></div>
+          <div class="flex justify-between"><dt class="text-forest/55">Region</dt><dd class="font-medium">{tour.region}</dd></div>
+          <div class="flex justify-between"><dt class="text-forest/55">Max group</dt><dd class="font-medium">{tour.max_group_size} people</dd></div>
+          <div class="flex justify-between"><dt class="text-forest/55">Guides available</dt><dd class="font-medium">{guides.length}</dd></div>
+        </dl>
+
+        <div class="mt-5 rounded-xl bg-forest/5 p-3 text-xs text-forest/65">
+          ✓ Includes SDF, hotels, all meals, guide & transport.<br/>
+          No hidden fees.
+        </div>
+
+        <a href="#packages" class="btn-primary mt-4 w-full">See packages</a>
+      </div>
+    </aside>
+
+  </section>
+</Layout>
+
+<!-- ── Pre-booking confirmation modal ─────────────────────────────────── -->
+<div id="booking-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+  <!-- Backdrop -->
+  <div id="modal-backdrop" class="absolute inset-0 bg-forest-900/60 backdrop-blur-sm"></div>
+
+  <!-- Panel -->
+  <div class="relative w-full max-w-md rounded-3xl bg-white shadow-2xl">
+
+    <!-- Amber notice banner -->
+    <div class="flex items-start gap-3 rounded-t-3xl bg-amber-50 px-6 py-4 border-b border-amber-100">
+      <svg class="mt-0.5 flex-none text-amber-600" width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M10 2L2 17h16L10 2Z" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+        <path d="M10 8v4M10 14.5v.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <p class="text-sm font-semibold text-amber-800">Confirm with your guide first</p>
+        <p class="mt-0.5 text-xs text-amber-700 leading-relaxed">
+          Before paying, please reach out to confirm availability on your date, group size, and any special requirements.
+        </p>
+      </div>
+    </div>
+
+    <!-- Guide info -->
+    <div class="flex items-center gap-4 px-6 py-5">
+      <img id="modal-guide-photo" src="" alt="" class="h-14 w-14 flex-none rounded-full object-cover ring-2 ring-gold/25" />
+      <div>
+        <p class="text-xs text-forest/50 uppercase tracking-wide">Your guide</p>
+        <p id="modal-guide-name" class="mt-0.5 font-serif text-lg font-semibold text-forest"></p>
+        <p id="modal-tour-name" class="text-sm text-forest/60"></p>
+      </div>
+    </div>
+
+    <!-- Contact options -->
+    <div id="modal-contact" class="mx-6 mb-5 grid gap-2"></div>
+
+    <!-- Checklist -->
+    <div class="mx-6 mb-5 rounded-2xl bg-forest/5 p-4 space-y-2.5">
+      <p class="text-xs font-semibold text-forest/70 uppercase tracking-wide mb-3">Please confirm before paying:</p>
+      {[
+        "Guide is available on my preferred date",
+        "Guide can accommodate my group size",
+        "I understand the price and what is included",
+        "I have asked about any special requirements or fitness level needed",
+      ].map((item, i) => (
+        <label class="flex items-start gap-2.5 cursor-pointer group">
+          <input type="checkbox" class="confirm-check mt-0.5 h-4 w-4 flex-none rounded accent-gold cursor-pointer" data-index={i} />
+          <span class="text-sm text-forest/75 group-has-[:checked]:text-forest/40 group-has-[:checked]:line-through transition-colors">{item}</span>
+        </label>
+      ))}
+    </div>
+
+    <!-- Actions -->
+    <div class="flex gap-3 px-6 pb-6">
+      <button id="modal-cancel" class="flex-1 btn-outline">Not yet</button>
+      <button id="modal-proceed" disabled
+        class="flex-1 btn-gold opacity-40 transition-opacity disabled:cursor-not-allowed"
+        aria-disabled="true">
+        Proceed to payment →
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<script>
+  const modal      = document.getElementById('booking-modal')!;
+  const backdrop   = document.getElementById('modal-backdrop')!;
+  const cancelBtn  = document.getElementById('modal-cancel')!;
+  const proceedBtn = document.getElementById('modal-proceed') as HTMLButtonElement;
+  const nameEl     = document.getElementById('modal-guide-name')!;
+  const tourEl     = document.getElementById('modal-tour-name')!;
+  const photoEl    = document.getElementById('modal-guide-photo') as HTMLImageElement;
+  const contactEl  = document.getElementById('modal-contact')!;
+  const checks     = () => document.querySelectorAll<HTMLInputElement>('.confirm-check');
+
+  let bookingHref = '';
+
+  function openModal(btn: HTMLElement) {
+    const guideName  = btn.dataset.guideName  ?? '';
+    const guideSlug  = btn.dataset.guide      ?? '';
+    const tourSlug   = btn.dataset.tour       ?? '';
+    const tourName   = btn.dataset.tourName   ?? '';
+    const photo      = btn.dataset.guidePhoto ?? '';
+    const email      = btn.dataset.guideEmail ?? '';
+    const phone      = btn.dataset.guidePhone ?? '';
+
+    // Build the booking URL using the currently-selected tier
+    const tier = (document.querySelector('[data-tier][style*="outline"]') as HTMLElement)?.dataset.tier ?? 'classic';
+    bookingHref = `/book?tour=${tourSlug}&guide=${guideSlug}&tier=${tier}`;
+
+    nameEl.textContent  = guideName;
+    tourEl.textContent  = tourName;
+    photoEl.src         = photo;
+    photoEl.alt         = guideName;
+
+    // Build contact buttons
+    contactEl.innerHTML = '';
+    if (email) {
+      const a = document.createElement('a');
+      a.href = `mailto:${email}`;
+      a.className = 'flex items-center gap-2 rounded-xl border border-forest/15 px-4 py-2.5 text-sm font-medium text-forest hover:bg-forest/5 transition-colors';
+      a.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 5l7 5 7-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Email ${guideName.split(' ')[0]}`;
+      contactEl.appendChild(a);
+    }
+    if (phone) {
+      const a = document.createElement('a');
+      a.href = `tel:${phone}`;
+      a.className = 'flex items-center gap-2 rounded-xl border border-forest/15 px-4 py-2.5 text-sm font-medium text-forest hover:bg-forest/5 transition-colors';
+      a.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 2h3l1.5 4-2 1.5a9 9 0 004 4L11 9.5l4 1.5v3a1 1 0 01-1 1C5.4 15 1 10.6 1 3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Call ${guideName.split(' ')[0]}`;
+      contactEl.appendChild(a);
+    }
+    if (!email && !phone) {
+      contactEl.innerHTML = '<p class="text-xs text-forest/50 text-center py-1">Contact details will be shared after booking enquiry.</p>';
+    }
+
+    // Reset checkboxes
+    checks().forEach((c) => { c.checked = false; });
+    updateProceed();
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.style.overflow = '';
+  }
+
+  function updateProceed() {
+    const all = Array.from(checks()).every((c) => c.checked);
+    proceedBtn.disabled = !all;
+    proceedBtn.style.opacity = all ? '1' : '0.4';
+  }
+
+  // Open modal on book button click
+  document.querySelectorAll<HTMLElement>('.book-btn').forEach((btn) => {
+    btn.addEventListener('click', () => openModal(btn));
+  });
+
+  // Close on backdrop or cancel
+  backdrop.addEventListener('click', closeModal);
+  cancelBtn.addEventListener('click', closeModal);
+
+  // Close on Escape
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+  // Watch checkboxes
+  modal.addEventListener('change', updateProceed);
+
+  // Proceed to payment
+  proceedBtn.addEventListener('click', () => {
+    if (!proceedBtn.disabled) window.location.href = bookingHref;
+  });
+</script>
+
+<script>
+  // Leaflet map
+  const mapEl = document.getElementById('tour-map') as HTMLElement | null;
+  if (mapEl) {
+    const raw = mapEl.dataset.points;
+    const points: { lat: number; lng: number; label: string }[] = raw ? JSON.parse(raw) : [];
+    if (points.length > 0) {
+      import('https://unpkg.com/leaflet@1.9.4/dist/leaflet-src.esm.js').then((L) => {
+        const lats = points.map((p) => p.lat);
+        const lngs = points.map((p) => p.lng);
+        const centerLat = (Math.min(...lats) + Math.max(...lats)) / 2;
+        const centerLng = (Math.min(...lngs) + Math.max(...lngs)) / 2;
+
+        const map = L.map(mapEl, { scrollWheelZoom: false }).setView([centerLat, centerLng], points.length === 1 ? 13 : 10);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+          maxZoom: 18,
+        }).addTo(map);
+
+        const icon = L.divIcon({
+          className: '',
+          html: '<div style="width:12px;height:12px;background:#C8860A;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.4)"></div>',
+          iconSize: [12, 12],
+          iconAnchor: [6, 6],
+        });
+
+        points.forEach((p) => {
+          L.marker([p.lat, p.lng], { icon }).addTo(map).bindPopup(`<b>${p.label}</b>`);
+        });
+
+        if (points.length > 1) {
+          const bounds = L.latLngBounds(points.map((p) => [p.lat, p.lng] as [number, number]));
+          map.fitBounds(bounds, { padding: [40, 40] });
+        }
+      });
+    }
+  }
+</script>
+
+<script>
+  // When user clicks a tier card, update all "Book" links to carry that tier
+  const tierCards = document.querySelectorAll('[data-tier]');
+  const bookLinks = document.querySelectorAll('.book-btn');
+
+  let selectedTier = 'classic';
+
+  function selectTier(key: string) {
+    selectedTier = key;
+    tierCards.forEach((c) => {
+      const el = c as HTMLElement;
+      const isSelected = el.dataset.tier === key;
+      el.style.outline = isSelected ? '3px solid #C8860A' : '';
+      el.style.outlineOffset = isSelected ? '2px' : '';
+    });
+    bookLinks.forEach((a) => {
+      const el = a as HTMLAnchorElement;
+      const url = new URL(el.href);
+      url.searchParams.set('tier', key);
+      el.href = url.toString();
+    });
+  }
+
+  tierCards.forEach((c) => {
+    c.addEventListener('click', () => selectTier((c as HTMLElement).dataset.tier!));
+  });
+
+  // Default highlight Classic
+  selectTier('classic');
+</script>

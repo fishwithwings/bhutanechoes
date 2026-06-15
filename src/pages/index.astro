@@ -1,0 +1,142 @@
+---
+import Layout from '../layouts/Layout.astro';
+import TourCard from '../components/TourCard.astro';
+import { getTours, getGuideCounts, getFeaturedReviews } from '../lib/data';
+
+export const prerender = true;
+
+const env = (Astro.locals as any).runtime?.env;
+const [tours, counts, featuredReviews] = await Promise.all([
+  getTours(env), getGuideCounts(env), getFeaturedReviews(env),
+]);
+const featured = tours.slice(0, 3);
+
+const steps = [
+  { n: '1', t: 'Choose your tour', d: "Browse 11 all-inclusive Bhutan packages, from the Tiger's Nest day hike to the 13-day Jumolhari trek." },
+  { n: '2', t: 'Pick your tier & guide', d: 'Choose Essential, Classic, or Luxury — then pick from vetted local guides who offer that tour.' },
+  { n: '3', t: 'Book & pay securely', d: 'Select your date and group size, pay online. Your guide is confirmed instantly and paid directly.' },
+];
+
+const trust = [
+  { stat: '11', label: 'Signature tours & treks' },
+  { stat: '100%', label: 'Licensed local guides' },
+  { stat: '3', label: 'All-inclusive tiers' },
+  { stat: 'Secure', label: 'Stripe-powered payments' },
+];
+---
+<Layout>
+  <!-- Hero -->
+  <section class="relative overflow-hidden">
+    <div class="absolute inset-0 -z-10">
+      <img src="/images/jumolhari.svg" alt="" class="h-full w-full object-cover" fetchpriority="high" />
+      <div class="absolute inset-0 bg-gradient-to-b from-forest-900/70 via-forest-900/55 to-forest-900/80"></div>
+    </div>
+    <div class="container-x flex min-h-[78vh] flex-col justify-center py-24 text-cream">
+      <p class="eyebrow text-gold-light">The last Himalayan kingdom</p>
+      <h1 class="mt-3 max-w-3xl font-serif text-4xl font-bold leading-[1.1] text-cream sm:text-6xl">
+        Travel Bhutan with a guide who calls it home.
+      </h1>
+      <p class="mt-5 max-w-xl text-lg text-cream/85">
+        11 all-inclusive tours — Essential, Classic, or Luxury. Every booking goes
+        directly to a licensed local guide.
+      </p>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a href="/tours" class="btn-gold text-base">Explore tours</a>
+        <a href="/for-guides" class="btn-outline border-cream/40 text-cream hover:bg-cream/10 hover:border-cream">
+          Become a guide
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trust bar -->
+  <section class="border-b border-forest/10 bg-cream-dark">
+    <div class="container-x grid grid-cols-2 gap-6 py-8 md:grid-cols-4">
+      {trust.map((t) => (
+        <div class="text-center">
+          <p class="font-serif text-2xl font-bold text-forest">{t.stat}</p>
+          <p class="mt-1 text-xs uppercase tracking-wide text-forest/55">{t.label}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Featured tours -->
+  <section class="container-x py-20">
+    <div class="flex items-end justify-between">
+      <div>
+        <p class="eyebrow">Signature journeys</p>
+        <h2 class="mt-2 font-serif text-3xl font-bold sm:text-4xl">Featured tours</h2>
+      </div>
+      <a href="/tours" class="btn-ghost hidden sm:inline-flex">View all →</a>
+    </div>
+    <div class="mt-10 grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
+      {featured.map((tour) => <TourCard tour={tour} guideCount={counts[tour.id]} />)}
+    </div>
+    <div class="mt-8 text-center sm:hidden">
+      <a href="/tours" class="btn-outline">View all tours</a>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="bg-forest text-cream">
+    <div class="container-x py-20">
+      <p class="eyebrow text-gold-light text-center">Simple & transparent</p>
+      <h2 class="mt-2 text-center font-serif text-3xl font-bold text-cream sm:text-4xl">How it works</h2>
+      <div class="mt-14 grid gap-10 md:grid-cols-3">
+        {steps.map((s) => (
+          <div class="relative">
+            <div class="flex h-12 w-12 items-center justify-center rounded-full bg-gold font-serif text-lg font-bold text-white">
+              {s.n}
+            </div>
+            <h3 class="mt-5 font-serif text-xl font-semibold text-cream">{s.t}</h3>
+            <p class="mt-2 text-sm leading-relaxed text-cream/70">{s.d}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Reviews -->
+  {featuredReviews.length > 0 && (
+    <section class="bg-cream-dark">
+      <div class="container-x py-20">
+        <p class="eyebrow text-center">Traveler stories</p>
+        <h2 class="mt-2 text-center font-serif text-3xl font-bold sm:text-4xl">What guests say</h2>
+        <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {featuredReviews.map((r: any) => (
+            <div class="card p-6">
+              <div class="flex gap-0.5 text-gold">
+                {'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}
+              </div>
+              <p class="mt-3 text-sm leading-relaxed text-forest/80 line-clamp-4">{r.comment}</p>
+              <div class="mt-4 border-t border-forest/8 pt-4">
+                <p class="text-sm font-semibold">{r.author_name}</p>
+                {r.guide_name && <p class="text-xs text-forest/50">Tour with {r.guide_name}</p>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- For guides CTA -->
+  <section class="container-x py-20">
+    <div class="card grid items-center gap-8 overflow-hidden md:grid-cols-2">
+      <div class="p-10">
+        <p class="eyebrow">For licensed guides</p>
+        <h2 class="mt-2 font-serif text-3xl font-bold">Guide travelers. Set your own price. Get paid fairly.</h2>
+        <p class="mt-4 text-forest/70">
+          Join Bhutan Echoes, build your profile, and choose your price for each tour
+          within fair limits. We handle the bookings and payments — you keep the
+          lion's share and the relationship.
+        </p>
+        <a href="/for-guides" class="btn-primary mt-6">Apply to guide</a>
+      </div>
+      <div class="relative h-64 md:h-full md:min-h-[320px]">
+        <img src="/images/druk-path.svg" alt="" class="h-full w-full object-cover" />
+      </div>
+    </div>
+  </section>
+</Layout>

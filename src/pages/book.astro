@@ -1,0 +1,205 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getOffering } from '../lib/data';
+import { formatMoney, formatDuration, difficultyLabel } from '../lib/format';
+import type { TierKey } from '../lib/types';
+
+const env = (Astro.locals as any).runtime?.env;
+const tourSlug  = Astro.url.searchParams.get('tour') ?? '';
+const guideSlug = Astro.url.searchParams.get('guide') ?? '';
+const tierParam = (Astro.url.searchParams.get('tier') ?? 'classic') as TierKey;
+const validTiers: TierKey[] = ['basic', 'classic', 'luxury'];
+const tierKey: TierKey = validTiers.includes(tierParam) ? tierParam : 'classic';
+
+const offering = await getOffering(tourSlug, guideSlug, tierKey, env);
+if (!offering) return Astro.redirect('/tours');
+
+const { tour, guide, price_cents, tier } = offering;
+const today = new Date();
+const minDate = new Date(today.getTime() + 2 * 86400000).toISOString().slice(0, 10);
+
+const tierBadge: Record<TierKey, string> = {
+  basic:   'bg-forest/8 text-forest',
+  classic: 'bg-gold/10 text-gold-dark',
+  luxury:  'bg-amber-100 text-amber-800',
+};
+const tierIcon: Record<TierKey, string> = {
+  basic: '🏕️', classic: '⭐', luxury: '💎',
+};
+---
+<Layout title={`Book ${tour.name} — ${tier.label} package`}>
+  <section class="container-x grid gap-10 py-12 lg:grid-cols-[1fr_380px]">
+
+    <!-- Form -->
+    <div>
+      <a href={`/tours/${tour.slug}#guides`} class="text-sm text-forest/60 hover:text-gold-dark">← Back to {tour.name}</a>
+      <h1 class="mt-3 font-serif text-3xl font-bold">Book your tour</h1>
+      <p class="mt-1 text-forest/65">Fill in your details and continue to secure payment.</p>
+
+      <!-- Change tier inline -->
+      <div class="mt-5 flex flex-wrap items-center gap-2 rounded-xl bg-cream-dark border border-forest/10 p-3">
+        <span class="text-xs font-medium text-forest/55">Package:</span>
+        {(['basic','classic','luxury'] as TierKey[]).map((k) => (
+          <a href={`/book?tour=${tourSlug}&guide=${guideSlug}&tier=${k}`}
+             class={`pill text-xs font-semibold transition-all ${k === tierKey ? tierBadge[k] + ' ring-2 ring-gold/30' : 'bg-forest/5 text-forest/50 hover:bg-forest/10'}`}>
+            {tierIcon[k]} {k.charAt(0).toUpperCase() + k.slice(1)}
+          </a>
+        ))}
+        <span class="ml-auto text-xs text-forest/45">Click to switch</span>
+      </div>
+
+      <form id="booking-form" class="mt-6 space-y-5">
+        <input type="hidden" name="tour_slug"  value={tour.slug} />
+        <input type="hidden" name="guide_slug" value={guide.slug} />
+        <input type="hidden" name="tier_key"   value={tierKey} />
+
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label class="label" for="tour_date">Tour date</label>
+            <input class="input" type="date" id="tour_date" name="tour_date" min={minDate} required />
+          </div>
+          <div>
+            <label class="label" for="group_size">Group size</label>
+            <input class="input" type="number" id="group_size" name="group_size"
+                   min="1" max={tour.max_group_size} value="2" required />
+            <p class="mt-1 text-xs text-forest/45">Max {tour.max_group_size} people</p>
+          </div>
+        </div>
+
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label class="label" for="guest_name">Your name</label>
+            <input class="input" type="text" id="guest_name" name="guest_name" required />
+          </div>
+          <div>
+            <label class="label" for="guest_email">Email</label>
+            <input class="input" type="email" id="guest_email" name="guest_email" required />
+          </div>
+        </div>
+
+        <div>
+          <label class="label" for="guest_phone">Phone (optional)</label>
+          <input class="input" type="tel" id="guest_phone" name="guest_phone" />
+        </div>
+
+        <div>
+          <label class="label" for="notes">Notes for your guide (optional)</label>
+          <textarea class="textarea" id="notes" name="notes" rows="3"
+                    placeholder="Dietary needs, fitness level, special requests…"></textarea>
+        </div>
+
+        <p id="form-error" class="hidden rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700"></p>
+
+        <button type="submit" id="submit-btn" class="btn-gold w-full text-base">
+          Continue to payment →
+        </button>
+        <p class="text-center text-xs text-forest/45">
+          Secure checkout via Stripe. You won't be charged until you confirm.
+        </p>
+      </form>
+    </div>
+
+    <!-- Summary -->
+    <aside class="lg:sticky lg:top-24 lg:self-start">
+      <div class="card overflow-hidden">
+        <img src={tour.image_url ?? '/images/placeholder.svg'} alt={tour.name} class="h-36 w-full object-cover" />
+        <div class="p-6">
+          <h2 class="font-serif text-lg font-semibold">{tour.name}</h2>
+          <p class="text-xs text-forest/55">{tour.region} · {formatDuration(tour.duration_days)} · {difficultyLabel(tour.difficulty)}</p>
+
+          <!-- Selected tier -->
+          <div class={`mt-4 rounded-xl border px-4 py-3 ${tierKey === 'luxury' ? 'border-amber-200 bg-amber-50' : tierKey === 'classic' ? 'border-gold/20 bg-gold/5' : 'border-forest/10 bg-cream-dark'}`}>
+            <div class="flex items-center gap-2">
+              <span class={`pill text-xs font-semibold ${tierBadge[tierKey]}`}>{tierIcon[tierKey]} {tier.label}</span>
+              <span class="text-xs text-forest/50">{tier.tagline}</span>
+            </div>
+            <ul class="mt-2 space-y-1">
+              {tier.includes.slice(0, 5).map((item) => (
+                <li class="flex items-start gap-1.5 text-xs text-forest/65">
+                  <span class="text-gold-dark mt-0.5">✓</span>{item}
+                </li>
+              ))}
+              {tier.includes.length > 5 && (
+                <li class="text-xs text-forest/45">+ {tier.includes.length - 5} more included</li>
+              )}
+            </ul>
+          </div>
+
+          <!-- Guide -->
+          <div class="mt-4 flex items-center gap-3 border-t border-forest/8 pt-4">
+            <img src={guide.photo_url ?? '/images/guide-placeholder.svg'} alt={guide.name}
+                 class="h-10 w-10 rounded-full object-cover" />
+            <div>
+              <p class="text-xs text-forest/50">Your guide</p>
+              <p class="text-sm font-medium text-forest">{guide.name}</p>
+            </div>
+          </div>
+
+          <!-- Totals -->
+          <dl class="mt-4 space-y-2 border-t border-forest/8 pt-4 text-sm">
+            <div class="flex justify-between">
+              <dt class="text-forest/60">Price / person</dt>
+              <dd class="font-medium" data-unit={price_cents}>{formatMoney(price_cents)}</dd>
+            </div>
+            <div class="flex justify-between">
+              <dt class="text-forest/60">Group size</dt>
+              <dd class="font-medium"><span id="sum-group">2</span></dd>
+            </div>
+            <div class="flex justify-between border-t border-forest/8 pt-2.5 text-base">
+              <dt class="font-semibold">Total</dt>
+              <dd class="font-serif font-bold text-forest" id="sum-total">{formatMoney(price_cents * 2)}</dd>
+            </div>
+          </dl>
+
+          <p class="mt-3 rounded-lg bg-forest/5 px-3 py-2 text-center text-xs text-forest/55">
+            All-inclusive: SDF, hotels, meals, guide & transport
+          </p>
+        </div>
+      </div>
+    </aside>
+  </section>
+</Layout>
+
+<script>
+  const unit = Number(document.querySelector('[data-unit]')?.getAttribute('data-unit') ?? 0);
+  const groupInput = document.getElementById('group_size') as HTMLInputElement;
+  const sumGroup   = document.getElementById('sum-group')!;
+  const sumTotal   = document.getElementById('sum-total')!;
+  const fmt = (c: number) =>
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(c / 100);
+
+  function recompute() {
+    const g = Math.max(1, Number(groupInput.value) || 1);
+    sumGroup.textContent = String(g);
+    sumTotal.textContent = fmt(unit * g);
+  }
+  groupInput?.addEventListener('input', recompute);
+  recompute();
+
+  const form = document.getElementById('booking-form') as HTMLFormElement;
+  const btn  = document.getElementById('submit-btn') as HTMLButtonElement;
+  const err  = document.getElementById('form-error')!;
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    err.classList.add('hidden');
+    btn.disabled = true;
+    btn.textContent = 'Redirecting…';
+    try {
+      const payload = Object.fromEntries(new FormData(form).entries());
+      const res = await fetch('/api/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.url) throw new Error(data.error || 'Could not start checkout.');
+      window.location.href = data.url;
+    } catch (e: any) {
+      err.textContent = e.message || 'Something went wrong. Please try again.';
+      err.classList.remove('hidden');
+      btn.disabled = false;
+      btn.textContent = 'Continue to payment →';
+    }
+  });
+</script>

@@ -1,0 +1,53 @@
+---
+const year = new Date().getFullYear();
+---
+<footer class="mt-24 border-t border-forest/10 bg-forest text-cream/80">
+  <div class="container-x grid gap-10 py-14 md:grid-cols-4">
+    <div class="md:col-span-1">
+      <div class="flex items-center gap-2.5">
+        <svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <path d="M16 2 L29 27 H3 Z" fill="#FAF7F0"/>
+          <path d="M16 9 L23 23 H9 Z" fill="#C8860A"/>
+        </svg>
+        <span class="font-serif text-lg font-bold text-cream">Bhutan Echoes</span>
+      </div>
+      <p class="mt-4 text-sm leading-relaxed text-cream/60">
+        Travel Bhutan with a licensed local guide. Fair prices, real connections,
+        the last Himalayan kingdom.
+      </p>
+    </div>
+
+    <div>
+      <h4 class="text-cream text-sm font-semibold uppercase tracking-wider">Explore</h4>
+      <ul class="mt-4 space-y-2.5 text-sm">
+        <li><a href="/tours" class="hover:text-gold-light">All tours</a></li>
+        <li><a href="/guides" class="hover:text-gold-light">Our guides</a></li>
+        <li><a href="/about" class="hover:text-gold-light">How it works</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <h4 class="text-cream text-sm font-semibold uppercase tracking-wider">Guides</h4>
+      <ul class="mt-4 space-y-2.5 text-sm">
+        <li><a href="/for-guides" class="hover:text-gold-light">Become a guide</a></li>
+        <li><a href="/register" class="hover:text-gold-light">Apply now</a></li>
+        <li><a href="/login" class="hover:text-gold-light">Guide login</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <h4 class="text-cream text-sm font-semibold uppercase tracking-wider">Support</h4>
+      <ul class="mt-4 space-y-2.5 text-sm">
+        <li><a href="/about" class="hover:text-gold-light">FAQ</a></li>
+        <li><a href="mailto:hello@bhutanechoes.com" class="hover:text-gold-light">Contact</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="border-t border-cream/10">
+    <div class="container-x flex flex-col items-center justify-between gap-2 py-6 text-xs text-cream/50 sm:flex-row">
+      <p>© {year} Bhutan Echoes. All rights reserved.</p>
+      <p>Made with care in the Land of the Thunder Dragon.</p>
+    </div>
+  </div>
+</footer>

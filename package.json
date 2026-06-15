@@ -1,0 +1,20 @@
+{
+  "name": "bhutan-echoes",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "A two-sided marketplace connecting travelers with licensed Bhutanese guides.",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^12.6.0",
+    "@astrojs/tailwind": "^6.0.2",
+    "@supabase/supabase-js": "^2.45.4",
+    "astro": "^5.13.5",
+    "stripe": "^17.7.0",
+    "tailwindcss": "^3.4.13"
+  }
+}

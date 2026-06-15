@@ -1,0 +1,19 @@
+# build output
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# env / secrets
+.env
+.env.production
+.dev.vars
+
+# supabase local
+supabase/.branches
+supabase/.temp
+
+# misc
+.DS_Store
+npm-debug.log*

@@ -1,0 +1,62 @@
+---
+import Layout from '../layouts/Layout.astro';
+export const prerender = true;
+
+const benefits = [
+  { t: 'Set your own price', d: 'Choose what you charge for each tour, within a fair band. You're in control.' },
+  { t: 'Keep the lion's share', d: 'We take a small platform commission. The rest is paid directly to you via Stripe.' },
+  { t: 'Get discovered', d: 'Travelers from around the world find you through our tours — no marketing needed.' },
+  { t: 'Own the relationship', d: 'Build your reputation with reviews and repeat guests who book you by name.' },
+];
+const steps = [
+  { n: '1', t: 'Apply', d: 'Create an account and submit your profile, license number and experience.' },
+  { n: '2', t: 'Get approved', d: 'Our team verifies your license and reviews your profile.' },
+  { n: '3', t: 'Set up payouts', d: 'Connect your Stripe account so we can pay you automatically.' },
+  { n: '4', t: 'Get booked', d: 'List your tours, set your prices, and start welcoming travelers.' },
+];
+---
+<Layout title="Become a guide — Bhutan Echoes">
+  <section class="relative overflow-hidden bg-forest text-cream">
+    <div class="absolute inset-0 -z-0 opacity-25">
+      <img src="/images/bumthang.svg" alt="" class="h-full w-full object-cover" />
+    </div>
+    <div class="container-x relative z-10 py-20">
+      <p class="eyebrow text-gold-light">For licensed guides</p>
+      <h1 class="mt-3 max-w-2xl font-serif text-4xl font-bold text-cream sm:text-5xl">
+        Share your Bhutan. Set your price. Get paid fairly.
+      </h1>
+      <p class="mt-5 max-w-xl text-cream/85">
+        Join a marketplace built around guides, not agencies. You set your prices,
+        keep most of the fee, and build a reputation that's yours.
+      </p>
+      <a href="/register" class="btn-gold mt-8 text-base">Apply to guide</a>
+    </div>
+  </section>
+
+  <section class="container-x py-16">
+    <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+      {benefits.map((b) => (
+        <div class="card p-6">
+          <h3 class="font-serif text-lg font-semibold text-forest">{b.t}</h3>
+          <p class="mt-2 text-sm leading-relaxed text-forest/70">{b.d}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="bg-cream-dark">
+    <div class="container-x py-16">
+      <h2 class="font-serif text-3xl font-bold">How to join</h2>
+      <div class="mt-10 grid gap-10 md:grid-cols-4">
+        {steps.map((s) => (
+          <div>
+            <div class="flex h-12 w-12 items-center justify-center rounded-full bg-forest font-serif text-lg font-bold text-cream">{s.n}</div>
+            <h3 class="mt-4 font-serif text-lg font-semibold">{s.t}</h3>
+            <p class="mt-2 text-sm leading-relaxed text-forest/70">{s.d}</p>
+          </div>
+        ))}
+      </div>
+      <a href="/register" class="btn-primary mt-10">Start your application</a>
+    </div>
+  </section>
+</Layout>

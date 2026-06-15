@@ -1,0 +1,77 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { adminClient } from '../../lib/supabase';
+import { formatMoney, formatDate } from '../../lib/format';
+
+const env = (Astro.locals as any).runtime?.env;
+const sessionId = Astro.url.searchParams.get('session_id');
+
+let booking: any = null;
+if (sessionId) {
+  try {
+    const supabase = adminClient(env);
+    const { data } = await supabase
+      .from('bookings')
+      .select('*, tour:tours(name), guide:guides(name, slug)')
+      .eq('stripe_session_id', sessionId)
+      .maybeSingle();
+    booking = data;
+  } catch { /* env not set — show generic confirmation */ }
+}
+---
+<Layout title="Booking confirmed — Bhutan Echoes">
+  <section class="container-x flex min-h-[60vh] flex-col items-center justify-center py-20 text-center">
+    <div class="flex h-16 w-16 items-center justify-center rounded-full bg-forest/10">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0B3D2E" stroke-width="2.5">
+        <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h1 class="mt-6 font-serif text-4xl font-bold">Your tour is confirmed!</h1>
+    <p class="mt-3 max-w-md text-forest/65">
+      Thank you for booking with Bhutan Echoes. A confirmation email is on its way,
+      and your guide will be in touch before your trip.
+    </p>
+
+    {booking && (
+      <div class="card mt-8 w-full max-w-sm p-6 text-left">
+        <dl class="space-y-2.5 text-sm">
+          <div class="flex justify-between"><dt class="text-forest/55">Tour</dt><dd class="font-medium">{booking.tour?.name}</dd></div>
+          <div class="flex justify-between"><dt class="text-forest/55">Guide</dt><dd class="font-medium">{booking.guide?.name}</dd></div>
+          <div class="flex justify-between"><dt class="text-forest/55">Date</dt><dd class="font-medium">{formatDate(booking.tour_date)}</dd></div>
+          <div class="flex justify-between"><dt class="text-forest/55">Group size</dt><dd class="font-medium">{booking.group_size}</dd></div>
+          <div class="flex justify-between border-t border-forest/8 pt-2.5">
+            <dt class="font-semibold">Total paid</dt>
+            <dd class="font-serif font-bold">{formatMoney(booking.total_price_cents)}</dd>
+          </div>
+        </dl>
+      </div>
+    )}
+
+    <div class="mt-8 flex flex-wrap justify-center gap-3">
+      <a href="/" class="btn-primary">Back home</a>
+      {booking?.guide?.slug && (
+        <a href={`/guides/${booking.guide.slug}`} class="btn-outline">View guide profile</a>
+      )}
+      <button id="share-btn" class="btn-ghost">Share this trip</button>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  const btn = document.getElementById('share-btn');
+  btn?.addEventListener('click', async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'I just booked a Bhutan tour!',
+          text: 'Exploring Bhutan with a licensed local guide — booked via Bhutan Echoes.',
+          url: 'https://bhutanechoes.com',
+        });
+      } catch { /* user cancelled */ }
+    } else {
+      await navigator.clipboard.writeText('https://bhutanechoes.com');
+      btn.textContent = 'Link copied!';
+      setTimeout(() => (btn.textContent = 'Share this trip'), 2000);
+    }
+  });
+</script>

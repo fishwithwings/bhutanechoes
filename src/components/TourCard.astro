@@ -1,0 +1,40 @@
+---
+import type { Tour } from '../lib/types';
+import { priceRange, formatDuration, difficultyLabel } from '../lib/format';
+
+interface Props { tour: Tour; guideCount?: number; }
+const { tour, guideCount } = Astro.props;
+---
+<a href={`/tours/${tour.slug}`} class="card-hover group block">
+  <div class="relative aspect-[4/3] overflow-hidden bg-forest/10">
+    <img
+      src={tour.image_url ?? '/images/placeholder.jpg'}
+      alt={tour.name}
+      loading="lazy"
+      class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+    />
+    <span class="pill-gold absolute left-3 top-3 bg-white/90 backdrop-blur">
+      {formatDuration(tour.duration_days)}
+    </span>
+  </div>
+  <div class="p-5">
+    <div class="flex items-center gap-2 text-xs text-forest/50">
+      <span>{tour.region}</span><span>•</span><span>{difficultyLabel(tour.difficulty)}</span>
+    </div>
+    <h3 class="mt-1.5 font-serif text-lg font-semibold leading-snug text-forest group-hover:text-forest-600">
+      {tour.name}
+    </h3>
+    <p class="mt-2 line-clamp-2 text-sm text-forest/65">{tour.summary}</p>
+    <div class="mt-4 flex items-end justify-between border-t border-forest/8 pt-4">
+      <div>
+        <p class="text-[11px] uppercase tracking-wide text-forest/45">From</p>
+        <p class="font-semibold text-forest">{priceRange(tour.min_price_cents, tour.max_price_cents)}
+          <span class="text-xs font-normal text-forest/50">/ person</span>
+        </p>
+      </div>
+      {guideCount !== undefined && (
+        <span class="text-xs text-forest/55">{guideCount} guide{guideCount === 1 ? '' : 's'}</span>
+      )}
+    </div>
+  </div>
+</a>

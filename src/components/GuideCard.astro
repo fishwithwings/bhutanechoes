@@ -1,0 +1,28 @@
+---
+import type { Guide } from '../lib/types';
+import StarRating from './StarRating.astro';
+
+interface Props {
+  guide: Guide;
+  rating?: number;
+  reviewCount?: number;
+}
+const { guide, rating, reviewCount } = Astro.props;
+---
+<a href={`/guides/${guide.slug}`} class="card-hover group flex items-center gap-4 p-4">
+  <img
+    src={guide.photo_url ?? '/images/guide-placeholder.jpg'}
+    alt={guide.name}
+    loading="lazy"
+    class="h-16 w-16 flex-none rounded-full object-cover ring-2 ring-gold/20"
+  />
+  <div class="min-w-0">
+    <h3 class="truncate font-serif text-base font-semibold text-forest">{guide.name}</h3>
+    {rating !== undefined && rating > 0
+      ? <div class="mt-0.5"><StarRating rating={rating} count={reviewCount} size={13} /></div>
+      : <p class="mt-0.5 text-xs text-forest/45">New guide</p>}
+    <p class="mt-1 truncate text-xs text-forest/55">
+      {guide.years_experience}+ yrs · {(guide.languages ?? []).slice(0, 3).join(', ')}
+    </p>
+  </div>
+</a>
