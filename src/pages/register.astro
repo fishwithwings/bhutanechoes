@@ -16,8 +16,8 @@ export const prerender = false;
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0B3D2E" stroke-width="2.5"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
       <h2 class="mt-4 font-serif text-2xl font-bold">Application received!</h2>
-      <p class="mt-2 text-forest/65">You can now sign in and complete your profile while we review your application.</p>
-      <a href="/dashboard" class="btn-primary mt-6">Go to dashboard</a>
+      <p class="mt-2 text-forest/65">We've sent a confirmation email to your address. Click the link to verify your email and activate your guide profile.</p>
+      <p class="mt-2 text-sm text-forest/50">Once verified you can sign in and complete your profile.</p>
     </div>
 
     <form id="reg-form" class="mt-8 space-y-5">
@@ -73,12 +73,6 @@ export const prerender = false;
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Application failed.');
-
-      // Auto sign-in so they land in the dashboard.
-      const sb = browserClient();
-      await sb.auth.signInWithPassword({
-        email: String(payload.email), password: String(payload.password),
-      });
       form.classList.add('hidden');
       success.classList.remove('hidden');
     } catch (e: any) {

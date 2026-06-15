@@ -44,7 +44,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
   // Create the auth user (pre-confirmed so they can sign in immediately).
   const { data: created, error: cErr } = await supabase.auth.admin.createUser({
-    email, password, email_confirm: true,
+    email, password, email_confirm: false,
     user_metadata: { full_name: name },
   });
   if (cErr || !created.user) {
