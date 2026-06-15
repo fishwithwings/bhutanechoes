@@ -191,14 +191,36 @@ if (minPrice && maxPrice) tourJsonLd["offers"] = {
 
       <!-- ── Guide selector ────────────────────────────────────────────── -->
       <div class="mt-12" id="guides">
-        <h2 class="font-serif text-2xl font-semibold">Choose your guide</h2>
-        <p class="mt-1 text-sm text-forest/60">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-1">
+          <h2 class="font-serif text-2xl font-semibold">Choose your guide</h2>
+          <button id="inquiry-btn" class="btn-outline !py-2 !px-4 text-sm">Send an inquiry</button>
+        </div>
+        <p class="text-sm text-forest/60">
           {guides.length} licensed guide{guides.length === 1 ? '' : 's'} available for this tour.
         </p>
 
+        <!-- Inquiry form -->
+        <div id="inquiry-panel" class="hidden mt-5 card p-6">
+          <h3 class="font-serif text-lg font-semibold mb-1">Send an inquiry</h3>
+          <p class="text-sm text-forest/55 mb-4">Your message will be sent to all available guides and our team. We'll get back to you within 24 hours.</p>
+          <form id="inquiry-form" class="space-y-4">
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div><label class="label" for="inq-name">Your name</label><input class="input" id="inq-name" required /></div>
+              <div><label class="label" for="inq-email">Your email</label><input class="input" type="email" id="inq-email" required /></div>
+            </div>
+            <div><label class="label" for="inq-msg">Message</label><textarea class="textarea" id="inq-msg" rows="4" required placeholder="Tell us your travel dates, group size, and any questions…"></textarea></div>
+            <p id="inq-err" class="hidden rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"></p>
+            <p id="inq-ok" class="hidden rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">Inquiry sent! We'll be in touch within 24 hours.</p>
+            <div class="flex gap-3">
+              <button type="submit" id="inq-submit" class="btn-primary">Send inquiry</button>
+              <button type="button" id="inquiry-cancel" class="btn-ghost">Cancel</button>
+            </div>
+          </form>
+        </div>
+
         {guides.length === 0 ? (
           <div class="mt-6 rounded-2xl border border-dashed border-forest/20 p-8 text-center text-forest/60">
-            No guides are listed yet. <a href="/for-guides" class="text-gold-dark underline">Become a guide</a>.
+            No guides are listed yet — use the inquiry form above and we'll match you with one.
           </div>
         ) : (
           <div class="mt-5 space-y-3">
@@ -494,4 +516,51 @@ if (minPrice && maxPrice) tourJsonLd["offers"] = {
 
   // Default highlight Classic
   selectTier('classic');
+</script>
+
+<script define:vars={{ tourName: tour.name, tourSlug: tour.slug }}>
+  const inquiryBtn    = document.getElementById('inquiry-btn');
+  const inquiryPanel  = document.getElementById('inquiry-panel');
+  const inquiryCancel = document.getElementById('inquiry-cancel');
+  const inquiryForm   = document.getElementById('inquiry-form') as HTMLFormElement;
+  const inqErr        = document.getElementById('inq-err')!;
+  const inqOk         = document.getElementById('inq-ok')!;
+  const inqSubmit     = document.getElementById('inq-submit') as HTMLButtonElement;
+
+  inquiryBtn?.addEventListener('click', () => {
+    inquiryPanel?.classList.toggle('hidden');
+    inquiryBtn.textContent = inquiryPanel?.classList.contains('hidden') ? 'Send an inquiry' : 'Hide form';
+  });
+  inquiryCancel?.addEventListener('click', () => {
+    inquiryPanel?.classList.add('hidden');
+    if (inquiryBtn) inquiryBtn.textContent = 'Send an inquiry';
+  });
+
+  inquiryForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    inqErr.classList.add('hidden');
+    inqOk.classList.add('hidden');
+    inqSubmit.disabled = true;
+    inqSubmit.textContent = 'Sending…';
+    const name    = (document.getElementById('inq-name') as HTMLInputElement).value.trim();
+    const email   = (document.getElementById('inq-email') as HTMLInputElement).value.trim();
+    const message = (document.getElementById('inq-msg') as HTMLTextAreaElement).value.trim();
+    try {
+      const res = await fetch('/api/inquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, message, tour_name: tourName, tour_slug: tourSlug }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to send.');
+      inquiryForm.reset();
+      inqOk.classList.remove('hidden');
+    } catch (err: any) {
+      inqErr.textContent = err.message ?? 'Something went wrong.';
+      inqErr.classList.remove('hidden');
+    } finally {
+      inqSubmit.disabled = false;
+      inqSubmit.textContent = 'Send inquiry';
+    }
+  });
 </script>
