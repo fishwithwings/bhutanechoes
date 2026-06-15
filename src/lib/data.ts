@@ -42,8 +42,16 @@ export async function getTours(env?: Env): Promise<Tour[]> {
   const client = db(env);
   if (client) {
     const { data, error } = await client
-      .from('tours').select('*').eq('is_active', true).order('sort_order');
-    if (!error && data) return data as Tour[];
+      .from('tours').select('*, tour_tiers(price_cents)').eq('is_active', true).order('sort_order');
+    if (!error && data) {
+      return (data as any[]).map((t) => {
+        const prices: number[] = (t.tour_tiers ?? []).map((tt: any) => tt.price_cents).filter((p: number) => p > 0);
+        return {
+          ...t,
+          min_price_cents: prices.length ? Math.min(...prices) : t.min_price_cents,
+        } as Tour;
+      });
+    }
   }
   return [...SEED_TOURS].sort((a, b) => a.sort_order - b.sort_order);
 }
