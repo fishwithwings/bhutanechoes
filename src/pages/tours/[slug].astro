@@ -193,7 +193,7 @@ if (minPrice && maxPrice) tourJsonLd["offers"] = {
       <div class="mt-12" id="guides">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-1">
           <h2 class="font-serif text-2xl font-semibold">Choose your guide</h2>
-          <button id="inquiry-btn" class="btn-outline !py-2 !px-4 text-sm">Send an inquiry</button>
+          <button id="inquiry-btn" data-tour-name={tour.name} data-tour-slug={tour.slug} class="btn-outline !py-2 !px-4 text-sm">Send an inquiry</button>
         </div>
         <p class="text-sm text-forest/60">
           {guides.length} licensed guide{guides.length === 1 ? '' : 's'} available for this tour.
@@ -518,14 +518,17 @@ if (minPrice && maxPrice) tourJsonLd["offers"] = {
   selectTier('classic');
 </script>
 
-<script define:vars={{ tourName: tour.name, tourSlug: tour.slug }}>
-  const inquiryBtn    = document.getElementById('inquiry-btn');
+<script>
+  const inquiryBtn    = document.getElementById('inquiry-btn') as HTMLButtonElement;
   const inquiryPanel  = document.getElementById('inquiry-panel');
   const inquiryCancel = document.getElementById('inquiry-cancel');
   const inquiryForm   = document.getElementById('inquiry-form') as HTMLFormElement;
   const inqErr        = document.getElementById('inq-err')!;
   const inqOk         = document.getElementById('inq-ok')!;
   const inqSubmit     = document.getElementById('inq-submit') as HTMLButtonElement;
+
+  const tourName = inquiryBtn?.dataset.tourName ?? '';
+  const tourSlug = inquiryBtn?.dataset.tourSlug ?? '';
 
   inquiryBtn?.addEventListener('click', () => {
     inquiryPanel?.classList.toggle('hidden');
