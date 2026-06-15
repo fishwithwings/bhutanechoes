@@ -46,7 +46,7 @@ export const prerender = false;
               Choose photo
               <input type="file" id="headshot" name="headshot" accept="image/*" class="sr-only" />
             </label>
-            <p class="mt-1 text-xs text-forest/45">JPG or PNG, square works best.</p>
+            <p class="mt-1 text-xs text-forest/45">JPG or PNG, square works best. Max 2 MB.</p>
           </div>
         </div>
       </div>
@@ -69,7 +69,7 @@ export const prerender = false;
         <p class="text-sm text-forest/55">Upload your guide license and any other relevant certificates. These are only seen by our team for verification.</p>
 
         <div>
-          <label class="label" for="license-doc">Guide license <span class="text-forest/40 font-normal">(PDF or image)</span></label>
+          <label class="label" for="license-doc">Guide license <span class="text-forest/40 font-normal">(PDF or image, max 2 MB)</span></label>
           <div id="license-drop" class="mt-1 flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-forest/20 p-6 text-center hover:border-gold/40 transition-colors cursor-pointer">
             <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" class="text-forest/30 mb-2" viewBox="0 0 24 24"><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4-4 4M12 8v8" stroke-linecap="round" stroke-linejoin="round"/></svg>
             <p class="text-sm text-forest/50">Click to upload or drag and drop</p>
@@ -79,7 +79,7 @@ export const prerender = false;
         </div>
 
         <div>
-          <label class="label" for="other-docs">Other documents <span class="text-forest/40 font-normal">(optional, multiple)</span></label>
+          <label class="label" for="other-docs">Other documents <span class="text-forest/40 font-normal">(optional, multiple, max 2 MB each)</span></label>
           <div id="other-drop" class="mt-1 flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-forest/20 p-6 text-center hover:border-gold/40 transition-colors cursor-pointer">
             <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" class="text-forest/30 mb-2" viewBox="0 0 24 24"><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4-4 4M12 8v8" stroke-linecap="round" stroke-linejoin="round"/></svg>
             <p class="text-sm text-forest/50">Click to upload or drag and drop</p>
@@ -107,16 +107,29 @@ export const prerender = false;
   const success = document.getElementById('success')!;
   const toList = (s: string) => s.split(',').map((x) => x.trim()).filter(Boolean);
 
+  const MB = 1024 * 1024;
+  function checkSize(file: File, maxMB: number): boolean {
+    if (file.size > maxMB * MB) {
+      err.textContent = `"${file.name}" is too large. Max size is ${maxMB} MB.`;
+      err.classList.remove('hidden');
+      return false;
+    }
+    return true;
+  }
+
   // Photo preview
   const headshotInput = document.getElementById('headshot') as HTMLInputElement;
   const photoPreview  = document.getElementById('photo-preview') as HTMLImageElement;
   headshotInput?.addEventListener('change', () => {
     const file = headshotInput.files?.[0];
-    if (file) photoPreview.src = URL.createObjectURL(file);
+    if (!file) return;
+    if (!checkSize(file, 2)) { headshotInput.value = ''; return; }
+    err.classList.add('hidden');
+    photoPreview.src = URL.createObjectURL(file);
   });
 
   // Drop zone clicks
-  function setupDropZone(zoneId: string, inputId: string, labelId: string, multiple = false) {
+  function setupDropZone(zoneId: string, inputId: string, labelId: string, maxMB: number, multiple = false) {
     const zone  = document.getElementById(zoneId)!;
     const input = document.getElementById(inputId) as HTMLInputElement;
     const label = document.getElementById(labelId)!;
@@ -127,20 +140,34 @@ export const prerender = false;
       e.preventDefault();
       zone.classList.remove('border-gold/60');
       if (e.dataTransfer?.files.length) {
+        const valid = Array.from(e.dataTransfer.files).filter(f => checkSize(f, maxMB));
+        if (!valid.length) return;
         const dt = new DataTransfer();
-        Array.from(e.dataTransfer.files).forEach(f => dt.items.add(f));
+        valid.forEach(f => dt.items.add(f));
         input.files = dt.files;
+        if (valid.length) err.classList.add('hidden');
         updateLabel();
       }
     });
-    input.addEventListener('change', updateLabel);
+    input.addEventListener('change', () => {
+      const files = Array.from(input.files ?? []);
+      const valid = files.filter(f => checkSize(f, maxMB));
+      if (valid.length !== files.length) {
+        const dt = new DataTransfer();
+        valid.forEach(f => dt.items.add(f));
+        input.files = dt.files;
+      } else {
+        err.classList.add('hidden');
+      }
+      updateLabel();
+    });
     function updateLabel() {
       const files = Array.from(input.files ?? []);
       label.textContent = files.map(f => f.name).join(', ');
     }
   }
-  setupDropZone('license-drop', 'license-doc', 'license-name');
-  setupDropZone('other-drop', 'other-docs', 'other-names', true);
+  setupDropZone('license-drop', 'license-doc', 'license-name', 2);
+  setupDropZone('other-drop', 'other-docs', 'other-names', 2, true);
 
   // Pre-fill from URL params (when redirected from login signup)
   const params = new URLSearchParams(window.location.search);
