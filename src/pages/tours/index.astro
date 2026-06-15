@@ -100,6 +100,7 @@ const popularTours = POPULAR_SLUGS.map(s => tours.find(t => t.slug === s)).filte
           data-duration={tour.duration_days}
           data-min-price={tour.min_price_cents}
           data-summary={tour.summary?.toLowerCase() ?? ''}
+          data-type={tour.tour_type ?? ''}
         >
           <TourCard tour={tour} guideCount={counts[tour.id]} />
         </div>
