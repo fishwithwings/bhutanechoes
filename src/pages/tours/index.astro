@@ -12,6 +12,15 @@ const counts = await getGuideCounts(env);
 // Unique regions and difficulties for filter dropdowns
 const regions = [...new Set(tours.map((t) => t.region).filter(Boolean))].sort();
 const difficulties = ['easy', 'moderate', 'challenging', 'strenuous'];
+
+const POPULAR_SLUGS = [
+  'tigers-nest-hike',
+  'punakha-day-tour',
+  'druk-path-trek',
+  'western-bhutan-grand-tour',
+  'thimphu-cultural-tour',
+];
+const popularTours = POPULAR_SLUGS.map(s => tours.find(t => t.slug === s)).filter(Boolean) as typeof tours;
 ---
 <Layout title="All Bhutan tours & treks — Bhutan Echoes"
         description="Every signature Bhutan tour and trek, with price ranges and licensed local guides to choose from.">
@@ -61,6 +70,31 @@ const difficulties = ['easy', 'moderate', 'challenging', 'strenuous'];
 
       <span id="filter-count" class="ml-auto text-xs text-forest/50"></span>
       <button id="filter-clear" class="hidden btn-ghost !py-1.5 !px-3 text-xs">Clear filters</button>
+    </div>
+  </section>
+
+  <!-- Traveler favorites -->
+  <section class="container-x py-14 border-b border-forest/10">
+    <div class="flex items-center gap-3 mb-1">
+      <h2 class="font-serif text-2xl font-semibold text-forest">Traveler favorites</h2>
+      <span class="pill-gold text-xs">Most popular</span>
+    </div>
+    <p class="text-forest/60 text-sm mb-7">The experiences travelers book most — consistently rated best across the web.</p>
+    <div class="grid gap-7 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      {popularTours.map((tour) => (
+        <div
+          class="tour-card"
+          data-slug={tour.slug}
+          data-name={tour.name.toLowerCase()}
+          data-region={tour.region ?? ''}
+          data-difficulty={tour.difficulty ?? ''}
+          data-duration={tour.duration_days}
+          data-min-price={tour.min_price_cents}
+          data-summary={tour.summary?.toLowerCase() ?? ''}
+        >
+          <TourCard tour={tour} guideCount={counts[tour.id]} />
+        </div>
+      ))}
     </div>
   </section>
 
