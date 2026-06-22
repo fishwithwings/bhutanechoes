@@ -32,23 +32,40 @@ const sortedTiers = [...tiers].sort((a, b) => a.price_cents - b.price_cents);
 const minPrice = sortedTiers.length ? sortedTiers[0].price_cents / 100 : null;
 const maxPrice = sortedTiers.length ? Math.max(...sortedTiers.map(t => t.price_cents)) / 100 : null;
 
+const touristTypeMap: Record<string, string> = {
+  cultural: 'Cultural Tourism', festival: 'Cultural Tourism',
+  luxury: 'Luxury Tourism', trekking: 'Adventure Tourism', adventure: 'Adventure Tourism',
+};
+const touristType = touristTypeMap[(tour as any).tour_type ?? ''] ?? 'Adventure Tourism';
+
 const tourJsonLd: Record<string, unknown> = {
   "@context": "https://schema.org",
-  "@type": "TouristTrip",
-  "name": tour.name,
-  "description": tour.summary,
-  "url": `https://bhutanechoes.com/tours/${tour.slug}`,
-  "touristType": "Adventure",
-  "itinerary": { "@type": "ItemList", "numberOfItems": tour.duration_days },
-  "provider": { "@type": "Organization", "name": "Bhutan Echoes", "url": "https://bhutanechoes.com" },
-};
-if (tour.image_url?.startsWith('http')) tourJsonLd["image"] = tour.image_url;
-if (minPrice && maxPrice) tourJsonLd["offers"] = {
-  "@type": "AggregateOffer",
-  "priceCurrency": "USD",
-  "lowPrice": minPrice,
-  "highPrice": maxPrice,
-  "offerCount": tiers.length,
+  "@graph": [
+    {
+      "@type": "TouristTrip",
+      "name": tour.name,
+      "description": tour.summary,
+      "url": `https://bhutanechoes.com/tours/${tour.slug}`,
+      "touristType": touristType,
+      "duration": `P${tour.duration_days}D`,
+      "itinerary": { "@type": "ItemList", "numberOfItems": tour.duration_days },
+      "location": { "@type": "Country", "name": "Bhutan", "geo": { "@type": "GeoCoordinates", "latitude": 27.5142, "longitude": 90.4336 } },
+      "provider": { "@type": "Organization", "name": "Bhutan Echoes", "url": "https://bhutanechoes.com" },
+      ...(tour.image_url?.startsWith('http') ? { "image": tour.image_url } : {}),
+      ...(minPrice && maxPrice ? { "offers": {
+        "@type": "AggregateOffer", "priceCurrency": "USD",
+        "lowPrice": minPrice, "highPrice": maxPrice, "offerCount": tiers.length,
+      }} : {}),
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://bhutanechoes.com" },
+        { "@type": "ListItem", "position": 2, "name": "Tours & Treks", "item": "https://bhutanechoes.com/tours" },
+        { "@type": "ListItem", "position": 3, "name": tour.name, "item": `https://bhutanechoes.com/tours/${tour.slug}` },
+      ],
+    },
+  ],
 };
 ---
 <Layout

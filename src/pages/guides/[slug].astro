@@ -11,22 +11,36 @@ if (!profile) return Astro.redirect('/404');
 
 const { guide, tours, reviews, rating, review_count } = profile;
 
-const jsonLd: Record<string, unknown> = {
-  "@context": "https://schema.org",
+const personSchema: Record<string, unknown> = {
   "@type": "Person",
   "name": guide.name,
   "description": guide.bio ?? undefined,
   "url": `https://bhutanechoes.com/guides/${guide.slug}`,
   "jobTitle": "Licensed Bhutan Tour Guide",
   "worksFor": { "@type": "Organization", "name": "Bhutan Echoes", "url": "https://bhutanechoes.com" },
+  ...(guide.photo_url ? { "image": guide.photo_url } : {}),
+  ...(review_count > 0 ? { "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": rating.toFixed(1),
+    "reviewCount": review_count,
+    "bestRating": "5",
+    "worstRating": "1",
+  }} : {}),
 };
-if (guide.photo_url) jsonLd["image"] = guide.photo_url;
-if (review_count > 0) jsonLd["aggregateRating"] = {
-  "@type": "AggregateRating",
-  "ratingValue": rating.toFixed(1),
-  "reviewCount": review_count,
-  "bestRating": "5",
-  "worstRating": "1",
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    personSchema,
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://bhutanechoes.com" },
+        { "@type": "ListItem", "position": 2, "name": "Guides", "item": "https://bhutanechoes.com/guides" },
+        { "@type": "ListItem", "position": 3, "name": guide.name, "item": `https://bhutanechoes.com/guides/${guide.slug}` },
+      ],
+    },
+  ],
 };
 ---
 <Layout title={`${guide.name} — Bhutan guide — Bhutan Echoes`} description={guide.bio ?? undefined} jsonLd={jsonLd}>
