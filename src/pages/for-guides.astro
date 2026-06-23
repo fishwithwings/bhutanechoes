@@ -3,60 +3,266 @@ import Layout from '../layouts/Layout.astro';
 export const prerender = true;
 
 const benefits = [
-  { t: 'Set your own price', d: "Choose what you charge for each tour, within a fair band. You're in control." },
-  { t: "Keep the lion's share", d: 'We take a small platform commission. The rest is paid directly to you via Stripe.' },
-  { t: 'Get discovered', d: 'Travelers from around the world find you through our tours — no marketing needed.' },
-  { t: 'Own the relationship', d: 'Build your reputation with reviews and repeat guests who book you by name.' },
+  { icon: '💰', t: 'Keep 85–90% of every booking', d: 'We take a small platform commission. The rest lands directly in your Stripe account — no waiting for an agency to cut you a check.' },
+  { icon: '📅', t: 'You set your availability', d: 'Accept or decline bookings on your schedule. No quota, no pressure. Your calendar, your rules.' },
+  { icon: '🌍', t: 'Reach international travelers', d: 'We handle the marketing. Travelers from the US, UK, Europe and Australia find you through our tours — no hustle required.' },
+  { icon: '⭐', t: 'Build a reputation that is yours', d: 'Your profile, your reviews, your repeat guests. The relationship belongs to you, not the agency.' },
+  { icon: '💬', t: 'Chat before they book', d: 'Travelers message you directly to ask questions and plan before committing. You know who you are guiding before day one.' },
+  { icon: '🔒', t: 'Secure, guaranteed payment', d: 'Payment is collected upfront. You are paid out automatically when the tour is complete — no chasing clients.' },
 ];
 const steps = [
-  { n: '1', t: 'Apply', d: 'Create an account and submit your profile, license number and experience.' },
-  { n: '2', t: 'Get approved', d: 'Our team verifies your license and reviews your profile.' },
-  { n: '3', t: 'Set up payouts', d: 'Connect your Stripe account so we can pay you automatically.' },
-  { n: '4', t: 'Get booked', d: 'List your tours, set your prices, and start welcoming travelers.' },
+  { n: '1', t: 'Create your profile', d: 'Sign up free, fill in your experience, languages, and license number. Takes about 10 minutes.' },
+  { n: '2', t: 'Get verified', d: 'Our team checks your TCB license and approves your profile within 48 hours.' },
+  { n: '3', t: 'Connect Stripe payouts', d: 'Link your bank account via Stripe so we can pay you after each completed tour.' },
+  { n: '4', t: 'Start welcoming guests', d: 'Select which tours you offer, set your prices, and receive booking requests from travelers.' },
 ];
+const faqs = [
+  { q: 'Do I need to be a licensed guide?', a: 'Yes. All guides on Bhutan Echoes must hold a valid Tourism Council of Bhutan (TCB) guide license. We verify every application.' },
+  { q: 'How much does it cost to join?', a: 'Nothing upfront. Listing and receiving bookings is completely free. We only earn a small commission when you complete a booking.' },
+  { q: 'Can I still work with agencies or take walk-in clients?', a: 'Absolutely. We have no exclusivity requirement. Use Bhutan Echoes alongside your existing work.' },
+  { q: 'When do I get paid?', a: 'Automatically via Stripe, typically within 2–5 business days of the tour completion date.' },
+  { q: 'What tours can I offer?', a: 'You choose which of our listed tours you want to offer. Once approved, just select your tours and set your tier prices.' },
+  { q: 'What if a guest cancels?', a: 'Our cancellation policy protects you. Guests who cancel within 14 days forfeit 50% of the booking fee, which is paid to you.' },
+];
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Become a Guide — Bhutan Echoes",
+  "description": "Join Bhutan Echoes as a licensed local guide. Keep 85–90% of every booking and reach international travelers with no upfront cost.",
+  "url": "https://bhutanechoes.com/for-guides",
+};
 ---
-<Layout title="Become a guide — Bhutan Echoes">
+<Layout
+  title="Become a Guide — Earn More, Work Free — Bhutan Echoes"
+  description="Join Bhutan Echoes as a licensed local guide. Keep 85–90% of every booking and reach international travelers with no upfront cost."
+  jsonLd={jsonLd}
+>
+  <!-- Hero -->
   <section class="relative overflow-hidden bg-forest text-cream">
-    <div class="absolute inset-0 -z-0 opacity-25">
-      <img src="/images/bumthang.svg" alt="" class="h-full w-full object-cover" />
+    <div class="absolute inset-0 -z-10">
+      <img
+        src="https://images.unsplash.com/photo-1584095434749-d1b975e1ca9c?w=1600&q=80"
+        alt=""
+        class="h-full w-full object-cover opacity-20"
+        fetchpriority="high"
+      />
+      <div class="absolute inset-0 bg-gradient-to-r from-forest via-forest/95 to-forest/60"></div>
     </div>
-    <div class="container-x relative z-10 py-20">
-      <p class="eyebrow text-gold-light">For licensed guides</p>
-      <h1 class="mt-3 max-w-2xl font-serif text-4xl font-bold text-cream sm:text-5xl">
-        Share your Bhutan. Set your price. Get paid fairly.
+    <div class="container-x relative z-10 py-24 lg:py-32">
+      <p class="eyebrow text-gold-light">For licensed guides in Bhutan</p>
+      <h1 class="mt-4 max-w-2xl font-serif text-4xl font-bold leading-tight text-cream sm:text-5xl lg:text-6xl">
+        Guide on your terms.<br />Keep what you earn.
       </h1>
-      <p class="mt-5 max-w-xl text-cream/85">
-        Join a marketplace built around guides, not agencies. You set your prices,
-        keep most of the fee, and build a reputation that's yours.
+      <p class="mt-6 max-w-xl text-lg leading-relaxed text-cream/80">
+        Bhutan Echoes connects you directly with international travelers — no agency middleman. You set your price, manage your calendar, and own your guest relationships.
       </p>
-      <a href="/register" class="btn-gold mt-8 text-base">Apply to guide</a>
+      <div class="mt-8 flex flex-wrap gap-4">
+        <a href="/register" class="btn-gold text-base">Apply to guide — it's free</a>
+        <a href="#how-it-works" class="rounded-full border border-cream/30 px-6 py-3 text-sm font-medium text-cream transition-colors hover:border-cream/60">See how it works</a>
+      </div>
+      <div class="mt-14 flex flex-wrap gap-10">
+        {[
+          { stat: '85–90%', label: 'of every booking you keep' },
+          { stat: 'Free', label: 'to list — no upfront cost' },
+          { stat: '48 hrs', label: 'average approval time' },
+          { stat: 'Auto', label: 'Stripe payouts after each tour' },
+        ].map((s) => (
+          <div>
+            <p class="font-serif text-3xl font-bold text-gold">{s.stat}</p>
+            <p class="mt-1 text-sm text-cream/65">{s.label}</p>
+          </div>
+        ))}
+      </div>
     </div>
   </section>
 
-  <section class="container-x py-16">
-    <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+  <!-- Earnings calculator -->
+  <section class="bg-cream-dark">
+    <div class="container-x py-16">
+      <div class="mx-auto max-w-2xl rounded-2xl border border-forest/10 bg-white p-8 shadow-sm">
+        <h2 class="font-serif text-2xl font-bold text-forest">See what you could earn</h2>
+        <p class="mt-1 text-sm text-forest/60">Adjust the sliders to estimate your monthly earnings</p>
+        <div class="mt-8 space-y-6">
+          <div>
+            <div class="flex justify-between text-sm font-medium text-forest">
+              <label for="bookings">Bookings per month</label>
+              <span id="bookings-val" class="text-gold-dark">4</span>
+            </div>
+            <input id="bookings" type="range" min="1" max="20" value="4" class="mt-2 h-2 w-full cursor-pointer accent-forest" />
+          </div>
+          <div>
+            <div class="flex justify-between text-sm font-medium text-forest">
+              <label for="price">Average tour price (USD / person)</label>
+              <span id="price-val" class="text-gold-dark">$400</span>
+            </div>
+            <input id="price" type="range" min="100" max="1200" step="50" value="400" class="mt-2 h-2 w-full cursor-pointer accent-forest" />
+          </div>
+          <div>
+            <div class="flex justify-between text-sm font-medium text-forest">
+              <label for="groupsize">Average group size</label>
+              <span id="groupsize-val" class="text-gold-dark">3 people</span>
+            </div>
+            <input id="groupsize" type="range" min="1" max="12" value="3" class="mt-2 h-2 w-full cursor-pointer accent-forest" />
+          </div>
+          <div class="rounded-xl bg-forest p-6 text-cream">
+            <div class="flex items-end justify-between">
+              <div>
+                <p class="text-sm text-cream/65">Your monthly take-home</p>
+                <p id="result" class="mt-1 font-serif text-4xl font-bold text-gold">$4,320</p>
+              </div>
+              <div class="text-right text-sm text-cream/60">
+                <p>Platform fee (10%)</p>
+                <p id="fee">−$480</p>
+              </div>
+            </div>
+            <p class="mt-4 text-xs text-cream/45">Based on 90% payout rate. Actual earnings vary by tour and season.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Benefits -->
+  <section class="container-x py-20">
+    <div class="text-center">
+      <p class="eyebrow">Why guides choose us</p>
+      <h2 class="mt-3 font-serif text-3xl font-bold text-forest sm:text-4xl">Built for guides, not agencies</h2>
+    </div>
+    <div class="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
       {benefits.map((b) => (
-        <div class="card p-6">
-          <h3 class="font-serif text-lg font-semibold text-forest">{b.t}</h3>
-          <p class="mt-2 text-sm leading-relaxed text-forest/70">{b.d}</p>
+        <div class="card p-7">
+          <span class="text-3xl">{b.icon}</span>
+          <h3 class="mt-4 font-serif text-lg font-semibold text-forest">{b.t}</h3>
+          <p class="mt-2 leading-relaxed text-forest/65">{b.d}</p>
         </div>
       ))}
     </div>
   </section>
 
-  <section class="bg-cream-dark">
-    <div class="container-x py-16">
-      <h2 class="font-serif text-3xl font-bold">How to join</h2>
-      <div class="mt-10 grid gap-10 md:grid-cols-4">
+  <!-- How it works -->
+  <section id="how-it-works" class="bg-cream-dark">
+    <div class="container-x py-20">
+      <div class="text-center">
+        <p class="eyebrow">Getting started</p>
+        <h2 class="mt-3 font-serif text-3xl font-bold text-forest sm:text-4xl">Up and running in 4 steps</h2>
+      </div>
+      <div class="mt-14 grid gap-10 md:grid-cols-4">
         {steps.map((s) => (
           <div>
             <div class="flex h-12 w-12 items-center justify-center rounded-full bg-forest font-serif text-lg font-bold text-cream">{s.n}</div>
-            <h3 class="mt-4 font-serif text-lg font-semibold">{s.t}</h3>
-            <p class="mt-2 text-sm leading-relaxed text-forest/70">{s.d}</p>
+            <h3 class="mt-5 font-serif text-lg font-semibold text-forest">{s.t}</h3>
+            <p class="mt-2 text-sm leading-relaxed text-forest/65">{s.d}</p>
           </div>
         ))}
       </div>
-      <a href="/register" class="btn-primary mt-10">Start your application</a>
+      <div class="mt-14 text-center">
+        <a href="/register" class="btn-primary text-base">Start your application →</a>
+        <p class="mt-3 text-sm text-forest/50">Takes about 10 minutes. Approved within 48 hours.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison table -->
+  <section class="container-x py-20">
+    <div class="text-center">
+      <p class="eyebrow">Compare</p>
+      <h2 class="mt-3 font-serif text-3xl font-bold text-forest sm:text-4xl">Bhutan Echoes vs traditional agencies</h2>
+    </div>
+    <div class="mt-12 overflow-x-auto">
+      <table class="w-full min-w-[560px] border-collapse text-sm">
+        <thead>
+          <tr>
+            <th class="pb-4 text-left font-medium text-forest/40"></th>
+            <th class="pb-4 text-center">
+              <span class="inline-block rounded-lg bg-forest px-4 py-1.5 text-sm font-semibold text-cream">Bhutan Echoes</span>
+            </th>
+            <th class="pb-4 text-center text-sm font-medium text-forest/40">Traditional agency</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-forest/8">
+          {[
+            ['Guide payout', '85–90% of booking', '30–50% of booking'],
+            ['Upfront cost', 'Free', 'Often a listing or joining fee'],
+            ['Price control', 'You set your prices', 'Agency sets the rate'],
+            ['Guest relationship', 'Direct — you own it', 'Agency owns the client'],
+            ['Reviews', 'Displayed on your profile', 'Go to the agency, not you'],
+            ['Exclusivity', 'None required', 'Often required'],
+            ['Payment speed', '2–5 days via Stripe', 'Weeks or end-of-month'],
+          ].map(([label, us, them]) => (
+            <tr>
+              <td class="py-4 font-medium text-forest">{label}</td>
+              <td class="py-4 text-center">
+                <span class="inline-flex items-center gap-1.5 font-medium text-forest">
+                  <svg class="h-4 w-4 flex-shrink-0 text-gold" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                  </svg>
+                  {us}
+                </span>
+              </td>
+              <td class="py-4 text-center text-forest/40">{them}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="bg-cream-dark">
+    <div class="container-x py-20">
+      <div class="text-center">
+        <p class="eyebrow">FAQ</p>
+        <h2 class="mt-3 font-serif text-3xl font-bold text-forest sm:text-4xl">Common questions</h2>
+      </div>
+      <div class="mx-auto mt-12 max-w-2xl space-y-4">
+        {faqs.map((f) => (
+          <details class="group rounded-xl border border-forest/10 bg-white px-6 py-5">
+            <summary class="flex cursor-pointer list-none items-center justify-between font-medium text-forest">
+              {f.q}
+              <svg class="ml-4 h-5 w-5 flex-shrink-0 text-forest/40 transition-transform group-open:rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+              </svg>
+            </summary>
+            <p class="mt-3 leading-relaxed text-forest/65">{f.a}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Final CTA -->
+  <section class="bg-forest text-cream">
+    <div class="container-x py-20 text-center">
+      <h2 class="font-serif text-3xl font-bold sm:text-4xl">Ready to take bookings?</h2>
+      <p class="mx-auto mt-4 max-w-lg text-cream/75">
+        Join Bhutan Echoes for free. No agency fees, no exclusivity, no catch — just more guests and more control over your guiding career.
+      </p>
+      <a href="/register" class="btn-gold mt-8 text-base">Apply now — free to join</a>
+      <p class="mt-4 text-sm text-cream/45">
+        Questions? Email <a href="mailto:guides@bhutanechoes.com" class="underline underline-offset-2 hover:text-cream/80">guides@bhutanechoes.com</a>
+      </p>
     </div>
   </section>
 </Layout>
+
+<script>
+  const bookingsEl = document.getElementById('bookings') as HTMLInputElement;
+  const priceEl = document.getElementById('price') as HTMLInputElement;
+  const groupEl = document.getElementById('groupsize') as HTMLInputElement;
+
+  function update() {
+    const b = +bookingsEl.value;
+    const p = +priceEl.value;
+    const g = +groupEl.value;
+    document.getElementById('bookings-val')!.textContent = String(b);
+    document.getElementById('price-val')!.textContent = `$${p}`;
+    document.getElementById('groupsize-val')!.textContent = `${g} ${g === 1 ? 'person' : 'people'}`;
+    const gross = b * p * g;
+    const fee = Math.round(gross * 0.10);
+    document.getElementById('result')!.textContent = `$${(gross - fee).toLocaleString()}`;
+    document.getElementById('fee')!.textContent = `−$${fee.toLocaleString()}`;
+  }
+
+  [bookingsEl, priceEl, groupEl].forEach((el) => el.addEventListener('input', update));
+  update();
+</script>
