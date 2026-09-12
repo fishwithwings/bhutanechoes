@@ -10,7 +10,11 @@ export const GET: APIRoute = async ({ locals }) => {
   const base = 'https://bhutanechoes.com';
   const now = new Date().toISOString().split('T')[0];
 
-  const staticUrls = ['/', '/tours', '/guides', '/about', '/for-guides'].map((p) => `
+  const staticUrls = [
+    '/', '/tours', '/guides', '/about', '/for-guides', '/travel-guide',
+    '/travel-guide/bhutan-visa-sdf-fee-explained',
+    '/travel-guide/best-time-to-visit-bhutan',
+  ].map((p) => `
   <url>
     <loc>${base}${p}</loc>
     <lastmod>${now}</lastmod>

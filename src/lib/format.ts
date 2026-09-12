@@ -24,6 +24,13 @@ const DIFFICULTY_LABEL: Record<string, string> = {
 };
 export const difficultyLabel = (d: string) => DIFFICULTY_LABEL[d] ?? d;
 
+/** Truncate to a max length at a word boundary, for meta descriptions (~155 chars is the SERP sweet spot). */
+export function truncate(text: string, maxLen = 155): string {
+  if (text.length <= maxLen) return text;
+  const cut = text.slice(0, maxLen - 1);
+  return `${cut.slice(0, cut.lastIndexOf(' '))}…`;
+}
+
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', {
     year: 'numeric', month: 'short', day: 'numeric',

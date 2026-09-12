@@ -2,7 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import StarRating from '../../components/StarRating.astro';
 import { getTourBySlug, getGuidesForTour, getTiersForTour } from '../../lib/data';
-import { formatMoney, formatDuration, difficultyLabel } from '../../lib/format';
+import { formatMoney, formatDuration, difficultyLabel, truncate } from '../../lib/format';
 
 const env = (Astro.locals as any).runtime?.env;
 const { slug } = Astro.params;
@@ -38,6 +38,14 @@ const touristTypeMap: Record<string, string> = {
 };
 const touristType = touristTypeMap[(tour as any).tour_type ?? ''] ?? 'Adventure Tourism';
 
+// SEO: unique, keyword-rich title/description per tour instead of a bare name.
+const seoTitle = `${tour.name} — ${formatDuration(tour.duration_days)} ${tour.region} Tour | Bhutan Echoes`;
+const seoDescription = truncate(
+  tour.summary
+    ? `${tour.summary} ${formatDuration(tour.duration_days)}, ${difficultyLabel(tour.difficulty)} difficulty. Book directly with a licensed Bhutan guide.`
+    : `${formatDuration(tour.duration_days)} ${tour.region} tour in Bhutan. Book directly with a licensed local guide — fully inclusive, no hidden fees.`
+);
+
 const tourJsonLd: Record<string, unknown> = {
   "@context": "https://schema.org",
   "@graph": [
@@ -69,8 +77,8 @@ const tourJsonLd: Record<string, unknown> = {
 };
 ---
 <Layout
-  title={`${tour.name} — Bhutan Echoes`}
-  description={tour.summary ?? undefined}
+  title={seoTitle}
+  description={seoDescription}
   ogImage={tour.image_url?.startsWith('http') ? tour.image_url : undefined}
   jsonLd={tourJsonLd}
 >

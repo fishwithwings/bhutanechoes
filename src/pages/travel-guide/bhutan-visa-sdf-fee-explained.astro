@@ -1,0 +1,134 @@
+---
+import Layout from '../../layouts/Layout.astro';
+export const prerender = true;
+
+const faqs = [
+  {
+    q: 'How much is the Bhutan visa fee?',
+    a: 'The visa processing fee is $40 USD per person, paid alongside your Sustainable Development Fee when your trip is arranged through a licensed tour operator or guide.',
+  },
+  {
+    q: 'What is the Sustainable Development Fee (SDF)?',
+    a: 'The SDF is a nightly fee charged to international tourists (excluding visitors from India, Bangladesh and the Maldives) that funds free healthcare, free education, and environmental conservation in Bhutan. As of 2024 it is $100 USD per person, per night for most nationalities.',
+  },
+  {
+    q: 'Can I get a Bhutan visa on arrival?',
+    a: 'No. Unlike some neighboring countries, Bhutan does not offer visa-on-arrival for most nationalities. Your visa must be approved in advance, which your licensed guide or tour operator handles as part of booking.',
+  },
+  {
+    q: 'Do children pay the SDF?',
+    a: 'Children under 6 are exempt. Children aged 6–12 pay 50% of the standard SDF rate. From age 13 the full rate applies.',
+  },
+  {
+    q: 'Is the SDF included in tour prices?',
+    a: 'On Bhutan Echoes, yes — every tour package price is fully inclusive of the SDF, so the price you see is the price you pay, with no surprise fees at the border.',
+  },
+];
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "Bhutan Visa & SDF Fee, Explained",
+      "description": "What the Sustainable Development Fee actually pays for, how much you'll owe, and how the visa process works for a Bhutan trip.",
+      "url": "https://bhutanechoes.com/travel-guide/bhutan-visa-sdf-fee-explained",
+      "author": { "@type": "Organization", "name": "Bhutan Echoes" },
+      "publisher": { "@type": "Organization", "name": "Bhutan Echoes" },
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": faqs.map(f => ({
+        "@type": "Question",
+        "name": f.q,
+        "acceptedAnswer": { "@type": "Answer", "text": f.a },
+      })),
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://bhutanechoes.com" },
+        { "@type": "ListItem", "position": 2, "name": "Travel Guide", "item": "https://bhutanechoes.com/travel-guide" },
+        { "@type": "ListItem", "position": 3, "name": "Bhutan Visa & SDF Fee, Explained", "item": "https://bhutanechoes.com/travel-guide/bhutan-visa-sdf-fee-explained" },
+      ],
+    },
+  ],
+};
+---
+<Layout
+  title="Bhutan Visa & SDF Fee Explained (2026) | Bhutan Echoes"
+  description="How much is Bhutan's visa and Sustainable Development Fee? A clear breakdown of costs, what's included, and how the visa process works."
+  jsonLd={jsonLd}
+>
+  <section class="bg-cream-dark border-b border-forest/10">
+    <div class="container-x py-12">
+      <a href="/travel-guide" class="text-sm text-forest/55 hover:text-gold-dark">← Travel guide</a>
+      <p class="eyebrow mt-3">Planning</p>
+      <h1 class="mt-2 max-w-2xl font-serif text-4xl font-bold sm:text-5xl">Bhutan visa &amp; SDF fee, explained</h1>
+      <p class="mt-3 max-w-2xl text-forest/70">
+        Every Bhutan trip involves two government charges — a visa fee and the Sustainable Development Fee (SDF).
+        Here's exactly what they cost and what they pay for.
+      </p>
+    </div>
+  </section>
+
+  <section class="container-x max-w-3xl py-12">
+    <div class="space-y-8 leading-relaxed text-forest/80">
+      <div>
+        <h2 class="font-serif text-2xl font-semibold text-forest">The short version</h2>
+        <p class="mt-3">
+          Bhutan charges every international tourist (except from India, Bangladesh and the Maldives) two fees on top
+          of the cost of their trip: a one-time <strong>$40 visa processing fee</strong>, and a
+          <strong>Sustainable Development Fee (SDF) of $100 per person, per night</strong>. Neither can be paid
+          on your own — a licensed Bhutanese tour operator or guide has to submit your visa application and
+          collect the SDF on the government's behalf before you can enter the country. That's not a formality
+          you can skip by traveling independently.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-serif text-2xl font-semibold text-forest">What does the SDF actually pay for?</h2>
+        <p class="mt-3">
+          Unlike a typical tourist tax, Bhutan's SDF is written directly into the country's "High Value, Low
+          Volume" tourism policy. It funds free healthcare and free education for Bhutanese citizens, upgrades to
+          rural infrastructure, and environmental and cultural conservation — including the trail maintenance and
+          reforestation that keeps treks like Druk Path and Jumolhari open. The fee is also Bhutan's way of
+          capping mass tourism: rather than maximizing visitor numbers, the country is one of the only carbon-negative
+          nations on Earth, and its tourism policy is built to keep it that way.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-serif text-2xl font-semibold text-forest">Visa process, step by step</h2>
+        <ol class="mt-3 list-decimal space-y-2 pl-5">
+          <li>Book a tour with a licensed Bhutanese guide or operator (this step is mandatory — Bhutan does not issue tourist visas to unaccompanied independent travelers).</li>
+          <li>Your guide submits your visa application to the Department of Immigration on your behalf, along with a copy of your passport.</li>
+          <li>You pay the $40 visa fee and the SDF for your full trip length, typically as part of your booking.</li>
+          <li>Your visa clearance letter is issued, usually within a few business days — you'll need to show this (or have it linked to your booking) when you check in for your flight to Paro.</li>
+          <li>The full visa stamp is issued on arrival in Bhutan, at Paro International Airport or a land border crossing.</li>
+        </ol>
+      </div>
+
+      <div>
+        <h2 class="font-serif text-2xl font-semibold text-forest">Frequently asked questions</h2>
+        <div class="mt-4 space-y-5">
+          {faqs.map((f) => (
+            <div>
+              <h3 class="font-semibold text-forest">{f.q}</h3>
+              <p class="mt-1.5 text-forest/70">{f.a}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div class="rounded-2xl bg-forest/5 p-6">
+        <h2 class="font-serif text-xl font-semibold text-forest">No surprise fees on Bhutan Echoes</h2>
+        <p class="mt-2 text-forest/70">
+          Every tour price on Bhutan Echoes already includes the SDF, hotels, meals, guide and transport —
+          the price on the page is the price you pay.
+        </p>
+        <a href="/tours" class="btn-primary mt-4 inline-block">Browse tours</a>
+      </div>
+    </div>
+  </section>
+</Layout>

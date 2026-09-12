@@ -26,10 +26,22 @@ const faqs = [
 ];
 const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "WebPage",
-  "name": "Become a Guide — Bhutan Echoes",
-  "description": "Join Bhutan Echoes as a licensed local guide. Keep 85–90% of every booking and reach international travelers with no upfront cost.",
-  "url": "https://bhutanechoes.com/for-guides",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "name": "Become a Guide — Bhutan Echoes",
+      "description": "Join Bhutan Echoes as a licensed local guide. Keep 85–90% of every booking and reach international travelers with no upfront cost.",
+      "url": "https://bhutanechoes.com/for-guides",
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": faqs.map(f => ({
+        "@type": "Question",
+        "name": f.q,
+        "acceptedAnswer": { "@type": "Answer", "text": f.a }
+      })),
+    },
+  ],
 };
 ---
 <Layout

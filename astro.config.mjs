@@ -10,5 +10,5 @@ export default defineConfig({
   output: 'server',
   adapter: cloudflare({ imageService: 'compile' }),
   integrations: [tailwind()],
-  site: 'https://bhutanechoes.pages.dev',
+  site: 'https://bhutanechoes.com',
 });
