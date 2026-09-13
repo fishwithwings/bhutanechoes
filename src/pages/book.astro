@@ -3,6 +3,9 @@ import Layout from '../layouts/Layout.astro';
 import { getOffering } from '../lib/data';
 import { formatMoney, formatDuration, difficultyLabel, formatPackageInclusion } from '../lib/format';
 import type { TierKey } from '../lib/types';
+import { INQUIRY_ONLY } from '../lib/site-config';
+
+if (INQUIRY_ONLY) return Astro.redirect('/plan', 302);
 
 const env = (Astro.locals as any).runtime?.env;
 const tourSlug  = Astro.url.searchParams.get('tour') ?? '';

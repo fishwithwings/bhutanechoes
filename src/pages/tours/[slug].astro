@@ -9,10 +9,8 @@ const { slug } = Astro.params;
 const tour = await getTourBySlug(slug!, env);
 if (!tour) return Astro.redirect('/404');
 
-const [guides, tiers] = await Promise.all([
-  getGuidesForTour(tour.id, env),
-  getTiersForTour(tour.id, env),
-]);
+const guides: Awaited<ReturnType<typeof getGuidesForTour>> = [];
+const tiers = await getTiersForTour(tour.id, env);
 
 const tierIcons: Record<string, string> = {
   basic: '🏕️', classic: '⭐', luxury: '💎',
@@ -39,11 +37,11 @@ const touristTypeMap: Record<string, string> = {
 const touristType = touristTypeMap[(tour as any).tour_type ?? ''] ?? 'Adventure Tourism';
 
 // SEO: unique, keyword-rich title/description per tour instead of a bare name.
-const seoTitle = `${tour.name} | Licensed Bhutan Guide & Packages`;
+const seoTitle = `${tour.name} | Request a Licensed Bhutan Guide`;
 const seoDescription = truncate(
   tour.summary
-    ? `${tour.summary} ${formatDuration(tour.duration_days)}, ${difficultyLabel(tour.difficulty)} difficulty. Book directly with a licensed Bhutan guide.`
-    : `${formatDuration(tour.duration_days)} ${tour.region} tour in Bhutan. Book directly with a licensed local guide — fully inclusive, no hidden fees.`
+    ? `${tour.summary} ${formatDuration(tour.duration_days)}, ${difficultyLabel(tour.difficulty)} difficulty. Request a personal licensed-guide match.`
+    : `${formatDuration(tour.duration_days)} ${tour.region} tour in Bhutan. Request a licensed local guide — fully inclusive, no hidden fees.`
 );
 
 const tourJsonLd: Record<string, unknown> = {
@@ -230,18 +228,16 @@ const tourJsonLd: Record<string, unknown> = {
       <!-- ── Guide selector ────────────────────────────────────────────── -->
       <div class="mt-12" id="guides">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-1">
-          <h2 class="font-serif text-2xl font-semibold">Choose your guide</h2>
+          <h2 class="font-serif text-2xl font-semibold">Request a local guide</h2>
           {guides.length > 0 && <button id="inquiry-btn" data-tour-name={tour.name} data-tour-slug={tour.slug} class="btn-outline !py-2 !px-4 text-sm">Ask a question</button>}
         </div>
-        <p class="text-sm text-forest/60">
-          {guides.length} licensed guide{guides.length === 1 ? '' : 's'} available for this tour.
-        </p>
+        <p class="text-sm text-forest/60">Tell us your plans and we’ll arrange the right licensed guide personally.</p>
 
         <!-- Inquiry form -->
         <div id="inquiry-panel" class={`${guides.length > 0 ? 'hidden' : ''} mt-5 card p-6 scroll-mt-28`}>
           <h3 class="font-serif text-lg font-semibold mb-1">{guides.length > 0 ? 'Ask about this trip' : 'Request this itinerary'}</h3>
           <p class="text-sm text-forest/55 mb-4">Share the basics and our team will match you with a licensed guide within 24 hours.</p>
-          <form id="inquiry-form" class="space-y-4">
+          <form id="inquiry-form" class="space-y-4" data-tour-name={tour.name} data-tour-slug={tour.slug}>
             <div class="grid gap-4 sm:grid-cols-2">
               <div><label class="label" for="inq-name">Your name</label><input class="input" id="inq-name" required /></div>
               <div><label class="label" for="inq-email">Your email</label><input class="input" type="email" id="inq-email" required /></div>
@@ -260,6 +256,7 @@ const tourJsonLd: Record<string, unknown> = {
               <button type="submit" id="inq-submit" class="btn-primary">Request trip advice</button>
               {guides.length > 0 && <button type="button" id="inquiry-cancel" class="btn-ghost">Cancel</button>}
             </div>
+            <p class="text-xs text-forest/45">Your request goes privately to the Bhutan Echoes team. No payment or account required.</p>
           </form>
         </div>
 
@@ -322,7 +319,7 @@ const tourJsonLd: Record<string, unknown> = {
           <div class="flex justify-between"><dt class="text-forest/55">Difficulty</dt><dd class="font-medium">{difficultyLabel(tour.difficulty)}</dd></div>
           <div class="flex justify-between"><dt class="text-forest/55">Region</dt><dd class="font-medium">{tour.region}</dd></div>
           <div class="flex justify-between"><dt class="text-forest/55">Max group</dt><dd class="font-medium">{tour.max_group_size} people</dd></div>
-          <div class="flex justify-between"><dt class="text-forest/55">Guides available</dt><dd class="font-medium">{guides.length}</dd></div>
+          <div class="flex justify-between"><dt class="text-forest/55">Guide matching</dt><dd class="font-medium">Personal</dd></div>
         </dl>
 
         <div class="mt-5 rounded-xl bg-forest/5 p-3 text-xs text-forest/65">
@@ -588,8 +585,8 @@ const tourJsonLd: Record<string, unknown> = {
   const inqOk         = document.getElementById('inq-ok')!;
   const inqSubmit     = document.getElementById('inq-submit') as HTMLButtonElement;
 
-  const tourName = inquiryBtn?.dataset.tourName ?? '';
-  const tourSlug = inquiryBtn?.dataset.tourSlug ?? '';
+  const tourName = inquiryForm?.dataset.tourName ?? '';
+  const tourSlug = inquiryForm?.dataset.tourSlug ?? '';
 
   inquiryBtn?.addEventListener('click', () => {
     inquiryPanel?.classList.toggle('hidden');

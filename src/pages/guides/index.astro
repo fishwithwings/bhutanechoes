@@ -1,20 +1,15 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import GuideCard from '../../components/GuideCard.astro';
-import { getApprovedGuides } from '../../lib/data';
-
-const env = (Astro.locals as any).runtime?.env;
-const guides = await getApprovedGuides(env);
 ---
-<Layout title="Our licensed guides — Bhutan Echoes"
-        description="Meet the licensed local guides of Bhutan Echoes. Experience, languages, certifications and reviews.">
+<Layout title="Our Guide Network — Bhutan Echoes"
+        description="Bhutan Echoes is building a trusted network of licensed local guides. Tell us about your trip and our team will arrange the right match.">
   <section class="bg-cream-dark border-b border-forest/10">
     <div class="container-x py-14">
-      <p class="eyebrow">The people</p>
-      <h1 class="mt-2 font-serif text-4xl font-bold sm:text-5xl">Our guides</h1>
+      <p class="eyebrow">The right local match</p>
+      <h1 class="mt-2 font-serif text-4xl font-bold sm:text-5xl">Our guide network is growing</h1>
       <p class="mt-3 max-w-2xl text-forest/70">
-        Every guide on Bhutan Echoes holds a Bhutan tourism guide license and is
-        reviewed by our team before appearing here.
+        We’re carefully building a network of licensed Bhutanese guides. For now,
+        tell us about your trip and our local team will arrange the right guide personally.
       </p>
     </div>
   </section>
@@ -23,26 +18,24 @@ const guides = await getApprovedGuides(env);
     <div class="container-x grid gap-5 py-6 text-sm sm:grid-cols-3">
       <div><strong class="block text-forest">License checked</strong><span class="text-forest/55">License details are reviewed before approval.</span></div>
       <div><strong class="block text-forest">Experience shown</strong><span class="text-forest/55">Languages, specialties, and guiding years are visible.</span></div>
-      <div><strong class="block text-forest">Talk before booking</strong><span class="text-forest/55">Ask questions directly before you pay.</span></div>
+      <div><strong class="block text-forest">Personal introduction</strong><span class="text-forest/55">Meet your guide before you decide.</span></div>
     </div>
   </section>
 
   <section class="container-x py-14">
-    {guides.length === 0 ? (
-      <p class="text-forest/60">No guides yet — check back soon.</p>
-    ) : (
-      <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {guides.map((g) => (
-          <GuideCard guide={g} rating={g.rating} reviewCount={g.review_count} />
-        ))}
-      </div>
-    )}
-    <div class="mt-10 rounded-2xl bg-cream-dark p-6 text-center sm:flex sm:items-center sm:justify-between sm:text-left">
+    <div class="rounded-2xl bg-cream-dark p-6 text-center sm:flex sm:items-center sm:justify-between sm:text-left">
       <div>
         <h2 class="font-serif text-xl font-semibold">Not sure which guide fits your trip?</h2>
         <p class="mt-1 text-sm text-forest/60">Tell us your dates and interests and we’ll make a recommendation.</p>
       </div>
-      <a href="/plan" class="btn-primary mt-5 sm:mt-0">Help me choose</a>
+      <a href="/plan" class="btn-primary mt-5 sm:mt-0">Request a guide match</a>
+    </div>
+    <div class="mt-6 rounded-2xl border border-forest/10 p-6 text-center sm:flex sm:items-center sm:justify-between sm:text-left">
+      <div>
+        <h2 class="font-serif text-xl font-semibold">Are you a licensed Bhutan guide?</h2>
+        <p class="mt-1 text-sm text-forest/60">Join the founding network and help shape Bhutan Echoes.</p>
+      </div>
+      <a href="/for-guides" class="btn-outline mt-5 sm:mt-0">Learn about joining</a>
     </div>
   </section>
 </Layout>

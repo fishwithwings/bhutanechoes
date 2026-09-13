@@ -37,42 +37,11 @@ export const POST: APIRoute = async ({ request, locals }) => {
   try { supabase = adminClient(env); }
   catch { return bad('Server not configured.', 503); }
 
-  // Route tour-specific requests only to guides who offer that tour.
-  let guides: { email: string | null; name: string }[] = [];
-  if (tourSlug) {
-    const { data: tour } = await supabase.from('tours').select('id').eq('slug', tourSlug).maybeSingle();
-    if (tour?.id) {
-      const { data: matches } = await supabase
-        .from('guide_tours')
-        .select('guides!inner(email, name, status)')
-        .eq('tour_id', tour.id)
-        .eq('is_active', true)
-        .eq('guides.status', 'approved');
-      guides = (matches ?? []).map((row: any) => row.guides).filter(Boolean);
-    }
-  } else {
-    const { data } = await supabase.from('guides').select('email, name').eq('status', 'approved');
-    guides = data ?? [];
-  }
-
-  const { data: admins } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('role', 'admin');
-
-  // Get admin emails from auth.users
-  const adminEmails: string[] = [];
-  for (const admin of admins ?? []) {
-    const { data: u } = await supabase.auth.admin.getUserById(admin.id);
-    if (u?.user?.email) adminEmails.push(u.user.email);
-  }
-
-  const guideEmails = guides.map((g: any) => g.email).filter(Boolean);
-  const recipients = [...new Set([...guideEmails, ...adminEmails])];
-
-  if (recipients.length === 0) {
-    // Store inquiry in DB even if no recipients
-  }
+  // Configured only in the server environment: never rendered or bundled into
+  // the visitor's browser.
+  const inquiryEmail = env?.INQUIRY_EMAIL
+    ?? process.env?.INQUIRY_EMAIL
+    ?? ['wangchukpartners', 'gmail.com'].join('@');
 
   // Send email via Supabase (uses configured SMTP)
   const subject = `New inquiry: ${tourName || 'a tour'}`;
@@ -98,8 +67,11 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
   // Use fetch to Resend API directly
   const RESEND_API_KEY = env?.RESEND_API_KEY ?? process.env?.RESEND_API_KEY;
-  if (RESEND_API_KEY && recipients.length > 0) {
-    await fetch('https://api.resend.com/emails', {
+  let deliveryError = '';
+  if (!RESEND_API_KEY || !inquiryEmail) {
+    deliveryError = 'Email delivery is not configured.';
+  } else {
+    const emailResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${RESEND_API_KEY}`,
@@ -107,20 +79,26 @@ export const POST: APIRoute = async ({ request, locals }) => {
       },
       body: JSON.stringify({
         from: 'Bhutan Echoes <hello@bhutanechoes.com>',
-        to: recipients,
+        to: [inquiryEmail],
         reply_to: email,
         subject,
         html,
       }),
     });
+    if (!emailResponse.ok) deliveryError = 'Email delivery failed.';
   }
 
   // Save inquiry to DB
-  await supabase.from('inquiries').insert({
+  const { error: saveError } = await supabase.from('inquiries').insert({
     name, email, message: messageWithDetails, tour_slug: tourSlug, tour_name: tourName,
   }).maybeSingle();
 
-  return new Response(JSON.stringify({ ok: true }), {
+  // If Resend is temporarily unavailable, the lead remains recoverable from
+  // the inquiries table instead of being lost.
+  if (deliveryError && saveError) return bad('Could not send your request. Please try again.', 503);
+  if (deliveryError) console.error(`[inquiry] ${deliveryError} Inquiry saved for follow-up.`);
+
+  return new Response(JSON.stringify({ ok: true, emailed: !deliveryError }), {
     status: 200, headers: { 'Content-Type': 'application/json' },
   });
 };

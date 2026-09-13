@@ -4,15 +4,15 @@ export const prerender = true;
 
 const steps = [
   { n: '1', t: 'Choose your tour', d: 'Compare our curated Bhutan tours and treks, each with three clearly priced package levels.' },
-  { n: '2', t: 'Pick your package and guide', d: 'Choose Essential, Classic, or Luxury, then compare licensed guides by experience, languages, and reviews.' },
-  { n: '3', t: 'Message your guide', d: 'Chat directly with your guide before you book — ask questions, share preferences, and plan together.' },
-  { n: '4', t: 'Book & pay securely', d: 'Choose your date and group size and pay online via Stripe. Your guide is confirmed instantly.' },
+  { n: '2', t: 'Send your trip request', d: 'Share your preferred dates, group size, package level, interests, and questions.' },
+  { n: '3', t: 'Get a personal match', d: 'Our local team recommends an itinerary and arranges a suitable licensed guide.' },
+  { n: '4', t: 'Confirm the details', d: 'Meet your guide, refine the plan, and confirm only when everything feels right.' },
   { n: '5', t: 'Travel', d: 'Meet your guide in Bhutan and experience the kingdom through the eyes of someone who lives it.' },
 ];
 const faqs = [
-  { q: 'Who sets the prices?', a: 'Bhutan Echoes sets one transparent price for each Essential, Classic, and Luxury package. The same package price appears across the catalogue, tour page, and checkout.' },
-  { q: 'Are the guides licensed?', a: 'Yes. Every guide is licensed by the Tourism Council of Bhutan and reviewed by our team before being approved on the platform.' },
-  { q: 'How are payments handled?', a: 'You pay the full amount securely at booking via Stripe. The platform keeps a small commission and the rest is paid directly to your guide.' },
+  { q: 'Who sets the prices?', a: 'Bhutan Echoes sets one transparent price for each Essential, Classic, and Luxury package. The same package price appears across the catalogue and tour page.' },
+  { q: 'Are the guides licensed?', a: 'We only arrange matches with licensed Bhutanese guides. We confirm the guide with you personally before you make a booking decision.' },
+  { q: 'How are payments handled?', a: 'Online payment is not open during this early launch. After we agree on your itinerary and guide, we will explain the confirmation and payment steps clearly.' },
   { q: 'Is the price per person or per group?', a: 'Prices are shown per person. Your total is the per-person price multiplied by your group size.' },
   { q: 'Can I cancel?', a: "Cancellation terms depend on the tour and timing. Contact us and we'll coordinate with your guide." },
 ];
@@ -27,14 +27,14 @@ const jsonLd = {
   }))
 };
 ---
-<Layout title="How it works — Bhutan Echoes" description="Learn how Bhutan Echoes works — browse tours, choose a licensed local guide, and book securely online." jsonLd={jsonLd}>
+<Layout title="How it works — Bhutan Echoes" description="Browse Bhutan tours, send your trip request, and let our local team arrange the right licensed guide." jsonLd={jsonLd}>
   <section class="bg-cream-dark border-b border-forest/10">
     <div class="container-x py-14">
       <p class="eyebrow">How it works</p>
       <h1 class="mt-2 font-serif text-4xl font-bold sm:text-5xl">Fair, direct, unforgettable</h1>
       <p class="mt-3 max-w-2xl text-forest/70">
-        Bhutan Echoes connects travelers directly with licensed local guides — no
-        bloated agency markups, just a fair price and a real connection.
+        Bhutan Echoes is building a direct marketplace for travelers and licensed
+        local guides. During our early launch, we arrange each guide match personally.
       </p>
     </div>
   </section>

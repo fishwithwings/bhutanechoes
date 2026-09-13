@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { adminClient } from '../../lib/supabase';
 import { stripeClient, envVar } from '../../lib/stripe';
 import { computeBookingTotals } from '../../lib/format';
+import { INQUIRY_ONLY } from '../../lib/site-config';
 
 export const prerender = false;
 
@@ -14,6 +15,7 @@ function bad(error: string, status = 400) {
 }
 
 export const POST: APIRoute = async ({ request, locals }) => {
+  if (INQUIRY_ONLY) return bad('Online booking is not open yet. Please request a trip instead.', 503);
   const env = (locals as any).runtime?.env;
 
   let body: any;

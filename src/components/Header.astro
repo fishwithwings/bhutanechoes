@@ -5,8 +5,8 @@ const isActive = (href: string) =>
 
 const links = [
   { href: '/tours', label: 'Tours' },
-  { href: '/guides', label: 'Guides' },
   { href: '/about', label: 'How it works' },
+  { href: '/travel-guide', label: 'Travel guide' },
 ];
 ---
 
@@ -30,10 +30,6 @@ const links = [
     </div>
 
     <div class="flex items-center gap-2">
-      <!-- Logged-out -->
-      <a id="nav-signin" href="/login" class="btn-ghost !hidden md:!inline-flex">Sign in</a>
-      <a id="nav-signup" href="/login#signup" class="btn-ghost !hidden md:!inline-flex">Create account</a>
-
       <!-- Logged-in: avatar dropdown -->
       <div id="nav-user" class="hidden relative">
         <button id="user-btn" class="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium text-forest hover:bg-forest/5 border border-forest/15 transition-colors">
@@ -79,8 +75,6 @@ const links = [
       ))}
       <a href="/for-guides" class="rounded-lg px-3 py-2.5 text-sm font-medium text-forest/80 hover:bg-forest/5">Become a guide</a>
       <div class="my-1 border-t border-forest/8"></div>
-      <a id="mobile-signin" href="/login" class="rounded-lg px-3 py-2.5 text-sm font-medium text-forest/80 hover:bg-forest/5">Sign in</a>
-      <a id="mobile-signup" href="/login#signup" class="rounded-lg px-3 py-2.5 text-sm font-medium text-forest/80 hover:bg-forest/5">Create account</a>
       <a id="mobile-main" href="/account" class="hidden rounded-lg px-3 py-2.5 text-sm font-medium text-forest/80 hover:bg-forest/5">My account</a>
       <a href="/chat" id="mobile-messages" class="hidden rounded-lg px-3 py-2.5 text-sm font-medium text-forest/80 hover:bg-forest/5">Messages</a>
       <button id="mobile-signout" class="hidden rounded-lg px-3 py-2.5 text-sm font-medium text-forest/80 hover:bg-forest/5 text-left">Sign out</button>
@@ -107,10 +101,7 @@ const links = [
     const sb = browserClient();
     const { data: { session } } = await sb.auth.getSession();
 
-    if (!session) {
-      document.getElementById('nav-signin')?.classList.remove('hidden');
-      document.getElementById('nav-signup')?.classList.remove('hidden');
-    } else if (session) {
+    if (session) {
       const { data: profile } = await sb.from('profiles').select('role').eq('id', session.user.id).maybeSingle();
       const role = profile?.role;
       const name = session.user.user_metadata?.full_name ?? session.user.email?.split('@')[0] ?? 'Account';
@@ -132,8 +123,6 @@ const links = [
       }
 
       // Mobile
-      document.getElementById('mobile-signin')?.classList.add('hidden');
-      document.getElementById('mobile-signup')?.classList.add('hidden');
       document.getElementById('mobile-main')?.classList.remove('hidden');
       document.getElementById('mobile-messages')?.classList.remove('hidden');
       document.getElementById('mobile-signout')?.classList.remove('hidden');
@@ -143,8 +132,5 @@ const links = [
       document.getElementById('nav-signout')?.addEventListener('click', signout);
       document.getElementById('mobile-signout')?.addEventListener('click', signout);
     }
-  } catch {
-    document.getElementById('nav-signin')?.classList.remove('hidden');
-    document.getElementById('nav-signup')?.classList.remove('hidden');
-  }
+  } catch {}
 </script>

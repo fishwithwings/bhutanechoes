@@ -3,6 +3,9 @@ import Layout from '../../layouts/Layout.astro';
 import StarRating from '../../components/StarRating.astro';
 import { getGuideBySlug } from '../../lib/data';
 import { formatMoney, formatDate, formatDuration } from '../../lib/format';
+import { INQUIRY_ONLY } from '../../lib/site-config';
+
+if (INQUIRY_ONLY) return Astro.redirect('/plan', 302);
 
 const env = (Astro.locals as any).runtime?.env;
 const { slug } = Astro.params;

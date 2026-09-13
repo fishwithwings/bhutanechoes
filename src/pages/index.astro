@@ -1,15 +1,15 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import TourCard from '../components/TourCard.astro';
-import { getTours, getGuideCounts, getFeaturedReviews } from '../lib/data';
+import { getTours } from '../lib/data';
 
 // Keep the homepage on the same live catalogue and tier prices as /tours.
 export const prerender = false;
 
 const env = (Astro.locals as any).runtime?.env;
-const [tours, counts, featuredReviews] = await Promise.all([
-  getTours(env), getGuideCounts(env), getFeaturedReviews(env),
-]);
+const tours = await getTours(env);
+const counts: Record<string, number> = {};
+const featuredReviews: never[] = [];
 const FEATURED_SLUGS = [
   'essential-bhutan-7d', 'punakha-tshechu-9d', 'uma-paro-luxury-5d',
   'western-bhutan-grand-tour', 'tigers-nest-hike', 'druk-path-trek',
@@ -21,14 +21,14 @@ const featuredTours = [...prioritizedTours, ...tours.filter((tour) => !FEATURED_
 
 const steps = [
   { n: '1', t: 'Choose your tour', d: `Compare ${tours.length} all-inclusive Bhutan journeys by travel style, length, and price.` },
-  { n: '2', t: 'Pick your tier & guide', d: 'Choose Essential, Classic, or Luxury — then pick from vetted local guides who offer that tour.' },
-  { n: '3', t: 'Message your guide', d: 'Chat directly with your guide before booking — ask questions, share preferences, and plan together.' },
-  { n: '4', t: 'Book & pay securely', d: 'Select your date and group size, pay online. Your guide is confirmed instantly and paid directly.' },
+  { n: '2', t: 'Send your request', d: 'Share your dates, group size, preferred package, and anything that matters to you.' },
+  { n: '3', t: 'We arrange your match', d: 'Our local team recommends an itinerary and introduces the right licensed guide for your trip.' },
+  { n: '4', t: 'Confirm when ready', d: 'Ask questions, refine the plan, and only confirm once the itinerary and guide feel right.' },
 ];
 
 const trust = [
   { stat: String(tours.length), label: 'Curated Bhutan journeys' },
-  { stat: 'Verified', label: 'Licensed local guides' },
+  { stat: 'Personal', label: 'Local guide matching' },
   { stat: '3', label: 'All-inclusive tiers' },
   { stat: '< 24h', label: 'Trip-planning replies' },
 ];
@@ -40,7 +40,7 @@ const jsonLd = {
       "@id": "https://bhutanechoes.com/#website",
       "url": "https://bhutanechoes.com",
       "name": "Bhutan Echoes",
-      "description": "Book licensed local guides for Bhutan tours and treks.",
+      "description": "Plan Bhutan tours and treks with local guide matching.",
       "potentialAction": {
         "@type": "SearchAction",
         "target": { "@type": "EntryPoint", "urlTemplate": "https://bhutanechoes.com/tours?q={search_term_string}" },
@@ -52,7 +52,7 @@ const jsonLd = {
       "@id": "https://bhutanechoes.com/#organization",
       "url": "https://bhutanechoes.com",
       "name": "Bhutan Echoes",
-      "description": "Bhutan tour marketplace connecting travelers with licensed local guides for cultural tours, festival tours, luxury lodges and Himalayan treks.",
+      "description": "A growing Bhutan tour marketplace that personally matches travelers with licensed local guides.",
       "logo": { "@type": "ImageObject", "url": "https://bhutanechoes.com/logo.svg" },
       "areaServed": { "@type": "Country", "name": "Bhutan" },
       "knowsAbout": ["Bhutan tours", "Bhutan trekking", "Tiger's Nest hike", "Bhutan festival tours", "Licensed Bhutan guides"],
@@ -74,8 +74,8 @@ const jsonLd = {
         Travel Bhutan with a guide who calls it home.
       </h1>
       <p class="mt-5 max-w-xl text-lg text-cream/85">
-        {tours.length} all-inclusive journeys — Essential, Classic, or Luxury. Every booking goes
-        directly to a licensed local guide.
+        Explore {tours.length} all-inclusive journeys, then tell us your plans. Our local team will
+        arrange the right licensed guide for you.
       </p>
       <div class="mt-8 flex flex-wrap gap-3">
         <a href="/tours" class="btn-gold text-base">Explore tours</a>
@@ -194,9 +194,8 @@ const jsonLd = {
         <p class="eyebrow">For licensed guides</p>
         <h2 class="mt-2 font-serif text-3xl font-bold">Guide travelers. Set your own price. Get paid fairly.</h2>
         <p class="mt-4 text-forest/70">
-          Join Bhutan Echoes, build your profile, and choose your price for each tour
-          within fair limits. We handle the bookings and payments — you keep the
-          lion's share and the relationship.
+          Join the founding Bhutan Echoes network, build your profile, and help us
+          shape a fairer way for travelers and licensed guides to meet.
         </p>
         <a href="/for-guides" class="btn-primary mt-6">Apply to guide</a>
       </div>

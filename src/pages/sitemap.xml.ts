@@ -1,17 +1,17 @@
 import type { APIRoute } from 'astro';
-import { getTours, getApprovedGuides } from '../lib/data';
+import { getTours } from '../lib/data';
 
 export const prerender = false;
 
 export const GET: APIRoute = async ({ locals }) => {
   const env = (locals as any).runtime?.env;
-  const [tours, guides] = await Promise.all([getTours(env), getApprovedGuides(env)]);
+  const tours = await getTours(env);
 
   const base = 'https://bhutanechoes.com';
   const now = new Date().toISOString().split('T')[0];
 
   const staticUrls = [
-    '/', '/tours', '/guides', '/about', '/for-guides', '/travel-guide',
+    '/', '/tours', '/about', '/for-guides', '/travel-guide',
     '/travel-guide/bhutan-visa-sdf-fee-explained',
     '/travel-guide/best-time-to-visit-bhutan',
     '/plan',
@@ -31,17 +31,9 @@ export const GET: APIRoute = async ({ locals }) => {
     <priority>0.9</priority>
   </url>`);
 
-  const guideUrls = guides.map((g) => `
-  <url>
-    <loc>${base}/guides/${g.slug}</loc>
-    <lastmod>${now}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>`);
-
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${[...staticUrls, ...tourUrls, ...guideUrls].join('')}
+${[...staticUrls, ...tourUrls].join('')}
 </urlset>`;
 
   return new Response(xml, {

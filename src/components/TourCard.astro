@@ -1,6 +1,7 @@
 ---
 import type { Tour } from '../lib/types';
 import { formatMoney, formatDuration, difficultyLabel } from '../lib/format';
+import { INQUIRY_ONLY } from '../lib/site-config';
 
 interface Props { tour: Tour; guideCount?: number; }
 const { tour, guideCount } = Astro.props;
@@ -45,7 +46,9 @@ const { tour, guideCount } = Astro.props;
           <span class="text-xs font-normal text-forest/50">/ person</span>
         </p>
       </div>
-      {guideCount !== undefined && (
+      {INQUIRY_ONLY ? (
+        <span class="text-right text-xs font-semibold text-gold-dark">Request this trip</span>
+      ) : guideCount !== undefined && (
         <span class="text-right text-xs text-forest/55">
           {guideCount > 0 ? `${guideCount} guide${guideCount === 1 ? '' : 's'}` : 'Guide matching'}
         </span>
