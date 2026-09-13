@@ -11,9 +11,9 @@ const links = [
 ---
 
 <header class="sticky top-0 z-40 border-b border-forest/10 bg-cream/85 backdrop-blur">
-  <nav class="container-x flex h-16 items-center justify-between">
-    <a href="/" class="flex items-center">
-      <img src="/logo.svg" alt="Bhutan Echoes" width="160" height="42" class="h-9 w-auto" />
+  <nav class="container-x flex h-16 items-center justify-between gap-3">
+    <a href="/" class="flex min-w-0 flex-none items-center">
+      <img src="/logo.svg" alt="Bhutan Echoes" width="160" height="42" class="h-8 w-auto sm:h-9" />
     </a>
 
     <div class="hidden items-center gap-1 md:flex">
@@ -31,8 +31,8 @@ const links = [
 
     <div class="flex items-center gap-2">
       <!-- Logged-out -->
-      <a id="nav-signin" href="/login" class="hidden btn-ghost sm:inline-flex">Sign in</a>
-      <a id="nav-signup" href="/login#signup" class="hidden btn-ghost sm:inline-flex">Create account</a>
+      <a id="nav-signin" href="/login" class="btn-ghost !hidden md:!inline-flex">Sign in</a>
+      <a id="nav-signup" href="/login#signup" class="btn-ghost !hidden md:!inline-flex">Create account</a>
 
       <!-- Logged-in: avatar dropdown -->
       <div id="nav-user" class="hidden relative">
@@ -58,7 +58,10 @@ const links = [
         </div>
       </div>
 
-      <a href="/tours" class="btn-gold">Book a tour</a>
+      <a href="/plan" class="btn-gold !hidden sm:!inline-flex">Plan my trip</a>
+      <a href="/plan" class="inline-flex min-h-10 items-center justify-center rounded-full bg-gold px-4 text-sm font-semibold text-white sm:hidden">
+        Plan trip
+      </a>
 
       <button id="menu-btn" class="md:hidden p-2 text-forest" aria-label="Menu">
         <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
@@ -77,6 +80,7 @@ const links = [
       <a href="/for-guides" class="rounded-lg px-3 py-2.5 text-sm font-medium text-forest/80 hover:bg-forest/5">Become a guide</a>
       <div class="my-1 border-t border-forest/8"></div>
       <a id="mobile-signin" href="/login" class="rounded-lg px-3 py-2.5 text-sm font-medium text-forest/80 hover:bg-forest/5">Sign in</a>
+      <a id="mobile-signup" href="/login#signup" class="rounded-lg px-3 py-2.5 text-sm font-medium text-forest/80 hover:bg-forest/5">Create account</a>
       <a id="mobile-main" href="/account" class="hidden rounded-lg px-3 py-2.5 text-sm font-medium text-forest/80 hover:bg-forest/5">My account</a>
       <a href="/chat" id="mobile-messages" class="hidden rounded-lg px-3 py-2.5 text-sm font-medium text-forest/80 hover:bg-forest/5">Messages</a>
       <button id="mobile-signout" class="hidden rounded-lg px-3 py-2.5 text-sm font-medium text-forest/80 hover:bg-forest/5 text-left">Sign out</button>
@@ -129,6 +133,7 @@ const links = [
 
       // Mobile
       document.getElementById('mobile-signin')?.classList.add('hidden');
+      document.getElementById('mobile-signup')?.classList.add('hidden');
       document.getElementById('mobile-main')?.classList.remove('hidden');
       document.getElementById('mobile-messages')?.classList.remove('hidden');
       document.getElementById('mobile-signout')?.classList.remove('hidden');

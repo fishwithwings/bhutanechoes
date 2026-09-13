@@ -5,23 +5,23 @@ export const prerender = true;
 const faqs = [
   {
     q: 'How much is the Bhutan visa fee?',
-    a: 'The visa processing fee is $40 USD per person, paid alongside your Sustainable Development Fee when your trip is arranged through a licensed tour operator or guide.',
+    a: 'The visa processing fee is a non-refundable $40 USD per person, paid when you submit your visa application alongside the Sustainable Development Fee.',
   },
   {
     q: 'What is the Sustainable Development Fee (SDF)?',
-    a: 'The SDF is a nightly fee charged to international tourists (excluding visitors from India, Bangladesh and the Maldives) that funds free healthcare, free education, and environmental conservation in Bhutan. As of 2024 it is $100 USD per person, per night for most nationalities.',
+    a: 'The SDF is a nightly visitor levy that supports healthcare, education, infrastructure, and environmental and cultural preservation. The standard rate is $100 USD per adult, per night; separate rates and processes apply to visitors from India, Bangladesh, and the Maldives.',
   },
   {
     q: 'Can I get a Bhutan visa on arrival?',
-    a: 'No. Unlike some neighboring countries, Bhutan does not offer visa-on-arrival for most nationalities. Your visa must be approved in advance, which your licensed guide or tour operator handles as part of booking.',
+    a: 'Most travelers need approval before departure. Visitors from Bangladesh and the Maldives may apply in advance or on arrival, while Indian visitors require a permit. Check the official Bhutan Travel visa page for your nationality.',
   },
   {
     q: 'Do children pay the SDF?',
-    a: 'Children under 6 are exempt. Children aged 6–12 pay 50% of the standard SDF rate. From age 13 the full rate applies.',
+    a: 'Children under 6 are exempt. Children aged 6 to 11 pay 50% of the standard SDF rate. Travelers aged 12 and older pay the adult rate.',
   },
   {
     q: 'Is the SDF included in tour prices?',
-    a: 'On Bhutan Echoes, yes — every tour package price is fully inclusive of the SDF, so the price you see is the price you pay, with no surprise fees at the border.',
+    a: 'On Bhutan Echoes, the SDF is included when it appears in the package inclusion list. The separate $40 visa application fee is not included unless a package explicitly says so.',
   },
 ];
 
@@ -77,12 +77,10 @@ const jsonLd = {
       <div>
         <h2 class="font-serif text-2xl font-semibold text-forest">The short version</h2>
         <p class="mt-3">
-          Bhutan charges every international tourist (except from India, Bangladesh and the Maldives) two fees on top
-          of the cost of their trip: a one-time <strong>$40 visa processing fee</strong>, and a
-          <strong>Sustainable Development Fee (SDF) of $100 per person, per night</strong>. Neither can be paid
-          on your own — a licensed Bhutanese tour operator or guide has to submit your visa application and
-          collect the SDF on the government's behalf before you can enter the country. That's not a formality
-          you can skip by traveling independently.
+          Most international visitors pay a one-time <strong>$40 visa processing fee</strong> and a
+          <strong>Sustainable Development Fee (SDF) of $100 per adult, per night</strong>. You may apply
+          through Bhutan's official visa portal yourself, or a tour operator or hotel can apply on your behalf.
+          Different visa or permit processes and SDF rates apply to visitors from India, Bangladesh, and the Maldives.
         </p>
       </div>
 
@@ -101,10 +99,10 @@ const jsonLd = {
       <div>
         <h2 class="font-serif text-2xl font-semibold text-forest">Visa process, step by step</h2>
         <ol class="mt-3 list-decimal space-y-2 pl-5">
-          <li>Book a tour with a licensed Bhutanese guide or operator (this step is mandatory — Bhutan does not issue tourist visas to unaccompanied independent travelers).</li>
-          <li>Your guide submits your visa application to the Department of Immigration on your behalf, along with a copy of your passport.</li>
+          <li>Prepare a valid passport, recent passport photo, arrival and departure dates, and payment details.</li>
+          <li>Apply through Bhutan's official visa portal, or ask your tour operator or hotel to apply on your behalf.</li>
           <li>You pay the $40 visa fee and the SDF for your full trip length, typically as part of your booking.</li>
-          <li>Your visa clearance letter is issued, usually within a few business days — you'll need to show this (or have it linked to your booking) when you check in for your flight to Paro.</li>
+          <li>Allow up to five working days for a correctly completed application to be reviewed.</li>
           <li>The full visa stamp is issued on arrival in Bhutan, at Paro International Airport or a land border crossing.</li>
         </ol>
       </div>
@@ -122,11 +120,12 @@ const jsonLd = {
       </div>
 
       <div class="rounded-2xl bg-forest/5 p-6">
-        <h2 class="font-serif text-xl font-semibold text-forest">No surprise fees on Bhutan Echoes</h2>
+        <h2 class="font-serif text-xl font-semibold text-forest">Know what your package covers</h2>
         <p class="mt-2 text-forest/70">
-          Every tour price on Bhutan Echoes already includes the SDF, hotels, meals, guide and transport —
-          the price on the page is the price you pay.
+          Package pages list the included SDF, accommodation, meals, guide, and transport. The $40 visa
+          application fee, flights, insurance, and personal expenses are separate unless explicitly listed.
         </p>
+        <p class="mt-3 text-xs text-forest/55">Last checked September 2026 against the official <a href="https://bhutan.travel/visa" class="underline decoration-gold underline-offset-2">Bhutan Travel visa guidance</a>.</p>
         <a href="/tours" class="btn-primary mt-4 inline-block">Browse tours</a>
       </div>
     </div>

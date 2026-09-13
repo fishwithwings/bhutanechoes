@@ -2,7 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import StarRating from '../../components/StarRating.astro';
 import { getTourBySlug, getGuidesForTour, getTiersForTour } from '../../lib/data';
-import { formatMoney, formatDuration, difficultyLabel, truncate } from '../../lib/format';
+import { formatMoney, formatDuration, difficultyLabel, truncate, formatPackageInclusion } from '../../lib/format';
 
 const env = (Astro.locals as any).runtime?.env;
 const { slug } = Astro.params;
@@ -39,7 +39,7 @@ const touristTypeMap: Record<string, string> = {
 const touristType = touristTypeMap[(tour as any).tour_type ?? ''] ?? 'Adventure Tourism';
 
 // SEO: unique, keyword-rich title/description per tour instead of a bare name.
-const seoTitle = `${tour.name} — ${formatDuration(tour.duration_days)} ${tour.region} Tour | Bhutan Echoes`;
+const seoTitle = `${tour.name} | Licensed Bhutan Guide & Packages`;
 const seoDescription = truncate(
   tour.summary
     ? `${tour.summary} ${formatDuration(tour.duration_days)}, ${difficultyLabel(tour.difficulty)} difficulty. Book directly with a licensed Bhutan guide.`
@@ -86,7 +86,7 @@ const tourJsonLd: Record<string, unknown> = {
   <!-- Hero -->
   <section class="relative">
     <div class="relative h-[42vh] min-h-[320px]">
-      <img src={tour.image_url ?? '/images/placeholder.svg'} alt={tour.name} class="h-full w-full object-cover" />
+      <img src={tour.image_url ?? '/images/placeholder.svg'} alt={tour.name} onerror="this.onerror=null;this.src='/images/placeholder.svg'" class="h-full w-full object-cover" />
       <div class="absolute inset-0 bg-gradient-to-t from-forest-900/80 to-forest-900/20"></div>
       <div class="container-x absolute inset-x-0 bottom-0 pb-8 text-cream">
         <a href="/tours" class="text-sm text-cream/80 hover:text-gold-light">← All tours</a>
@@ -177,7 +177,7 @@ const tourJsonLd: Record<string, unknown> = {
       <!-- ── Tier selector ─────────────────────────────────────────────── -->
       <div class="mt-12" id="packages">
         <h2 class="font-serif text-2xl font-semibold">Choose your package</h2>
-        <p class="mt-1 text-sm text-forest/60">All prices are per person, fully inclusive — hotels, meals, SDF, guide & transport.</p>
+        <p class="mt-1 text-sm text-forest/60">Prices are per person. Each package lists exactly what is included.</p>
 
         {tiers.length === 0 ? (
           <p class="mt-4 text-forest/55">Package pricing coming soon.</p>
@@ -205,7 +205,7 @@ const tourJsonLd: Record<string, unknown> = {
                         <circle cx="7" cy="7" r="7" fill="#0B3D2E" opacity="0.1"/>
                         <path d="M4 7l2 2 4-4" stroke="#0B3D2E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                       </svg>
-                      {item}
+                      {formatPackageInclusion(item, tour.duration_days)}
                     </li>
                   ))}
                 </ul>
@@ -213,47 +213,66 @@ const tourJsonLd: Record<string, unknown> = {
             ))}
           </div>
         )}
+
+        <div class="mt-5 grid gap-4 rounded-2xl border border-forest/10 bg-cream-dark p-5 text-sm sm:grid-cols-2">
+          <div>
+            <p class="font-semibold text-forest">Included</p>
+            <p class="mt-1 leading-relaxed text-forest/65">Only the items listed in your chosen package, including the SDF when shown.</p>
+          </div>
+          <div>
+            <p class="font-semibold text-forest">Usually not included</p>
+            <p class="mt-1 leading-relaxed text-forest/65">International flights, travel insurance, visa application fee, tips, alcohol, and personal expenses unless listed.</p>
+          </div>
+          <p class="text-xs leading-relaxed text-forest/55 sm:col-span-2">The itinerary shows travel days. Accommodation nights and exact check-in dates are confirmed before payment.</p>
+        </div>
       </div>
 
       <!-- ── Guide selector ────────────────────────────────────────────── -->
       <div class="mt-12" id="guides">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-1">
           <h2 class="font-serif text-2xl font-semibold">Choose your guide</h2>
-          <button id="inquiry-btn" data-tour-name={tour.name} data-tour-slug={tour.slug} class="btn-outline !py-2 !px-4 text-sm">Send an inquiry</button>
+          {guides.length > 0 && <button id="inquiry-btn" data-tour-name={tour.name} data-tour-slug={tour.slug} class="btn-outline !py-2 !px-4 text-sm">Ask a question</button>}
         </div>
         <p class="text-sm text-forest/60">
           {guides.length} licensed guide{guides.length === 1 ? '' : 's'} available for this tour.
         </p>
 
         <!-- Inquiry form -->
-        <div id="inquiry-panel" class="hidden mt-5 card p-6">
-          <h3 class="font-serif text-lg font-semibold mb-1">Send an inquiry</h3>
-          <p class="text-sm text-forest/55 mb-4">Your message will be sent to all available guides and our team. We'll get back to you within 24 hours.</p>
+        <div id="inquiry-panel" class={`${guides.length > 0 ? 'hidden' : ''} mt-5 card p-6 scroll-mt-28`}>
+          <h3 class="font-serif text-lg font-semibold mb-1">{guides.length > 0 ? 'Ask about this trip' : 'Request this itinerary'}</h3>
+          <p class="text-sm text-forest/55 mb-4">Share the basics and our team will match you with a licensed guide within 24 hours.</p>
           <form id="inquiry-form" class="space-y-4">
             <div class="grid gap-4 sm:grid-cols-2">
               <div><label class="label" for="inq-name">Your name</label><input class="input" id="inq-name" required /></div>
               <div><label class="label" for="inq-email">Your email</label><input class="input" type="email" id="inq-email" required /></div>
             </div>
-            <div><label class="label" for="inq-msg">Message</label><textarea class="textarea" id="inq-msg" rows="4" required placeholder="Tell us your travel dates, group size, and any questions…"></textarea></div>
+            <div class="grid gap-4 sm:grid-cols-3">
+              <div><label class="label" for="inq-month">Travel month</label><input class="input" type="month" id="inq-month" /></div>
+              <div><label class="label" for="inq-group">Group size</label><input class="input" type="number" min="1" max={tour.max_group_size} value="2" id="inq-group" /></div>
+              <div><label class="label" for="inq-package">Package</label><select class="input" id="inq-package">
+                {sortedTiers.map((tier) => <option value={tier.label}>{tier.label}</option>)}
+              </select></div>
+            </div>
+            <div><label class="label" for="inq-msg">What would make this trip right for you?</label><textarea class="textarea" id="inq-msg" rows="4" required placeholder="Interests, preferred pace, dietary needs, or questions…"></textarea></div>
             <p id="inq-err" class="hidden rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"></p>
             <p id="inq-ok" class="hidden rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">Inquiry sent! We'll be in touch within 24 hours.</p>
             <div class="flex gap-3">
-              <button type="submit" id="inq-submit" class="btn-primary">Send inquiry</button>
-              <button type="button" id="inquiry-cancel" class="btn-ghost">Cancel</button>
+              <button type="submit" id="inq-submit" class="btn-primary">Request trip advice</button>
+              {guides.length > 0 && <button type="button" id="inquiry-cancel" class="btn-ghost">Cancel</button>}
             </div>
           </form>
         </div>
 
         {guides.length === 0 ? (
           <div class="mt-6 rounded-2xl border border-dashed border-forest/20 p-8 text-center text-forest/60">
-            No guides are listed yet — use the inquiry form above and we'll match you with one.
+            A guide has not been assigned yet. Send the request above and our team will match you with a licensed local guide.
           </div>
         ) : (
           <div class="mt-5 space-y-3">
             {guides.map((g) => (
               <div class="card p-4 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <a href={`/guides/${g.slug}`} class="flex flex-1 items-center gap-4 min-w-0">
-                  <img src={g.photo_url ?? '/images/guide-placeholder.svg'} alt={g.name}
+                  <img src={g.photo_url ?? '/images/guide-placeholder.svg'} alt={g.name} onerror="this.onerror=null;this.src='/images/guide-placeholder.svg'"
                        class="h-14 w-14 flex-none rounded-full object-cover ring-2 ring-gold/20" />
                   <div class="min-w-0">
                     <h3 class="font-serif text-base font-semibold text-forest">{g.name}</h3>
@@ -308,15 +327,29 @@ const tourJsonLd: Record<string, unknown> = {
 
         <div class="mt-5 rounded-xl bg-forest/5 p-3 text-xs text-forest/65">
           ✓ Includes SDF, hotels, all meals, guide & transport.<br/>
-          No hidden fees.
+          Package inclusions are shown in full.
         </div>
 
-        <a href="#packages" class="btn-primary mt-4 w-full">See packages</a>
+        <a href={guides.length > 0 ? '#packages' : '#inquiry-panel'} class={`${guides.length > 0 ? 'btn-primary' : 'btn-gold'} mt-4 w-full`}>
+          {guides.length > 0 ? 'See packages' : 'Request this itinerary'}
+        </a>
       </div>
     </aside>
 
   </section>
 </Layout>
+
+{guides.length === 0 && (
+  <div class="fixed inset-x-0 bottom-0 z-40 border-t border-forest/10 bg-white/95 p-3 shadow-[0_-8px_24px_rgba(6,36,24,0.08)] backdrop-blur lg:hidden">
+    <div class="mx-auto flex max-w-lg items-center gap-3">
+      <div class="min-w-0 flex-1">
+        <p class="text-[11px] text-forest/50">Starting from</p>
+        <p class="font-serif font-bold text-forest">{sortedTiers[0] ? formatMoney(sortedTiers[0].price_cents) : 'Price on request'}</p>
+      </div>
+      <a href="#inquiry-panel" class="btn-gold !px-5 !py-2.5">Request itinerary</a>
+    </div>
+  </div>
+)}
 
 <!-- ── Pre-booking confirmation modal ─────────────────────────────────── -->
 <div id="booking-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
@@ -407,7 +440,7 @@ const tourJsonLd: Record<string, unknown> = {
     const phone      = btn.dataset.guidePhone ?? '';
 
     // Build the booking URL using the currently-selected tier
-    const tier = (document.querySelector('[data-tier][style*="outline"]') as HTMLElement)?.dataset.tier ?? 'classic';
+    const tier = btn.dataset.tier ?? 'classic';
     bookingHref = `/book?tour=${tourSlug}&guide=${guideSlug}&tier=${tier}`;
 
     nameEl.textContent  = guideName;
@@ -416,6 +449,21 @@ const tourJsonLd: Record<string, unknown> = {
     photoEl.alt         = guideName;
 
     contactEl.innerHTML = '';
+    const addContactLink = (label: string, href: string) => {
+      const link = document.createElement('a');
+      link.className = 'btn-outline w-full';
+      link.textContent = label;
+      link.href = href;
+      contactEl.appendChild(link);
+    };
+    if (email) addContactLink(`Email ${guideName}`, `mailto:${email}`);
+    if (phone) addContactLink(`Call ${guideName}`, `tel:${phone}`);
+    if (!email && !phone) {
+      const note = document.createElement('p');
+      note.className = 'text-sm text-forest/60';
+      note.textContent = 'Use the Message button to confirm availability with your guide.';
+      contactEl.appendChild(note);
+    }
 
     // Reset checkboxes
     checks().forEach((c) => { c.checked = false; });
@@ -504,7 +552,7 @@ const tourJsonLd: Record<string, unknown> = {
   const tierCards = document.querySelectorAll('[data-tier]');
   const bookLinks = document.querySelectorAll('.book-btn');
 
-  let selectedTier = 'classic';
+  let selectedTier = (tierCards[0] as HTMLElement | undefined)?.dataset.tier ?? 'classic';
 
   function selectTier(key: string) {
     selectedTier = key;
@@ -518,11 +566,8 @@ const tourJsonLd: Record<string, unknown> = {
         if (priceEl) priceEl.textContent = el.dataset.price;
       }
     });
-    bookLinks.forEach((a) => {
-      const el = a as HTMLAnchorElement;
-      const url = new URL(el.href);
-      url.searchParams.set('tier', key);
-      el.href = url.toString();
+    bookLinks.forEach((button) => {
+      (button as HTMLElement).dataset.tier = key;
     });
   }
 
@@ -530,8 +575,8 @@ const tourJsonLd: Record<string, unknown> = {
     c.addEventListener('click', () => selectTier((c as HTMLElement).dataset.tier!));
   });
 
-  // Default highlight Classic
-  selectTier('classic');
+  // Keep the summary aligned with the advertised starting price.
+  selectTier(selectedTier);
 </script>
 
 <script>
@@ -548,11 +593,11 @@ const tourJsonLd: Record<string, unknown> = {
 
   inquiryBtn?.addEventListener('click', () => {
     inquiryPanel?.classList.toggle('hidden');
-    inquiryBtn.textContent = inquiryPanel?.classList.contains('hidden') ? 'Send an inquiry' : 'Hide form';
+    inquiryBtn.textContent = inquiryPanel?.classList.contains('hidden') ? 'Ask a question' : 'Hide form';
   });
   inquiryCancel?.addEventListener('click', () => {
     inquiryPanel?.classList.add('hidden');
-    if (inquiryBtn) inquiryBtn.textContent = 'Send an inquiry';
+    if (inquiryBtn) inquiryBtn.textContent = 'Ask a question';
   });
 
   inquiryForm?.addEventListener('submit', async (e) => {
@@ -564,11 +609,14 @@ const tourJsonLd: Record<string, unknown> = {
     const name    = (document.getElementById('inq-name') as HTMLInputElement).value.trim();
     const email   = (document.getElementById('inq-email') as HTMLInputElement).value.trim();
     const message = (document.getElementById('inq-msg') as HTMLTextAreaElement).value.trim();
+    const travelMonth = (document.getElementById('inq-month') as HTMLInputElement).value;
+    const groupSize = (document.getElementById('inq-group') as HTMLInputElement).value;
+    const packageName = (document.getElementById('inq-package') as HTMLSelectElement).value;
     try {
       const res = await fetch('/api/inquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, message, tour_name: tourName, tour_slug: tourSlug }),
+        body: JSON.stringify({ name, email, message, travel_month: travelMonth, group_size: groupSize, package_name: packageName, tour_name: tourName, tour_slug: tourSlug }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to send.');
@@ -579,7 +627,7 @@ const tourJsonLd: Record<string, unknown> = {
       inqErr.classList.remove('hidden');
     } finally {
       inqSubmit.disabled = false;
-      inqSubmit.textContent = 'Send inquiry';
+      inqSubmit.textContent = 'Request trip advice';
     }
   });
 </script>

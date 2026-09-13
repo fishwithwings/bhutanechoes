@@ -13,6 +13,28 @@ import {
 
 type Env = Record<string, string | undefined> | undefined;
 
+const TOUR_IMAGE_FALLBACKS: Record<string, string> = {
+  'essential-bhutan-7d': 'https://images.unsplash.com/photo-1743402063949-ad3c824c2484?w=1200&q=80',
+  'discover-bhutan-10d': 'https://images.unsplash.com/photo-1638245771029-9bdb1e3e7a01?w=1200&q=80',
+  'punakha-tshechu-9d': 'https://images.unsplash.com/photo-1608236475016-1dcc7a260326?w=1200&q=80',
+  'black-necked-crane-festival-9d': 'https://images.unsplash.com/photo-1640248174356-81b49c507e54?w=1200&q=80',
+  'magical-bhutan-5d': 'https://images.unsplash.com/photo-1584095434749-d1b975e1ca9c?w=1200&q=80',
+  'uma-paro-luxury-5d': 'https://images.unsplash.com/photo-1662546803799-9a1d5532514f?w=1200&q=80',
+  'amankora-8d': 'https://images.unsplash.com/photo-1761048163587-0c13c4ae450b?w=1200&q=80',
+  'thimphu-tshechu-7d': 'https://images.unsplash.com/photo-1742539327294-a050227d15b7?w=1200&q=80',
+  'paro-tshechu-7d': 'https://images.unsplash.com/photo-1772702812440-b3b1c2c3abe3?w=1200&q=80',
+  'royal-highlander-festival-11d': 'https://images.unsplash.com/photo-1667984895361-6de69c521903?w=1200&q=80',
+};
+
+/** Repair malformed Unsplash share URLs while the database migration rolls out. */
+function normalizeTour(tour: Tour): Tour {
+  const image = tour.image_url ?? '';
+  const malformedUnsplash = image.includes('images.unsplash.com/photo-')
+    && !/images\.unsplash\.com\/photo-\d{10,}-/.test(image);
+  const fallback = TOUR_IMAGE_FALLBACKS[tour.slug];
+  return malformedUnsplash && fallback ? { ...tour, image_url: fallback } : tour;
+}
+
 function db(env: Env) {
   try {
     return publicClient(env);
@@ -51,13 +73,19 @@ export async function getTours(env?: Env): Promise<Tour[]> {
         if (!tiersByTour[tt.tour_id]) tiersByTour[tt.tour_id] = [];
         tiersByTour[tt.tour_id].push(tt.price_cents);
       }
-      return (toursRes.data as Tour[]).map((t) => {
+      return (toursRes.data as Tour[]).map((rawTour) => {
+        const t = normalizeTour(rawTour);
         const prices = tiersByTour[t.id]?.filter((p) => p > 0);
         return prices?.length ? { ...t, min_price_cents: Math.min(...prices) } : t;
       });
     }
   }
-  return [...SEED_TOURS].sort((a, b) => a.sort_order - b.sort_order);
+  return [...SEED_TOURS].sort((a, b) => a.sort_order - b.sort_order).map((rawTour) => {
+    const tour = normalizeTour(rawTour);
+    const prices = SEED_TIERS.filter((tier) => tier.tour_id === tour.id && tier.price_cents > 0)
+      .map((tier) => tier.price_cents);
+    return prices.length ? { ...tour, min_price_cents: Math.min(...prices) } : tour;
+  });
 }
 
 export async function getTourBySlug(slug: string, env?: Env): Promise<Tour | null> {
@@ -65,9 +93,10 @@ export async function getTourBySlug(slug: string, env?: Env): Promise<Tour | nul
   if (client) {
     const { data, error } = await client
       .from('tours').select('*').eq('slug', slug).maybeSingle();
-    if (!error && data) return data as Tour;
+    if (!error && data) return normalizeTour(data as Tour);
   }
-  return SEED_TOURS.find((t) => t.slug === slug) ?? null;
+  const tour = SEED_TOURS.find((t) => t.slug === slug);
+  return tour ? normalizeTour(tour) : null;
 }
 
 /** Approved guides offering a given tour, with their rating. */
@@ -121,7 +150,7 @@ export async function getApprovedGuides(env?: Env): Promise<GuideWithPrice[]> {
 export interface GuideProfile {
   guide: Guide;
   tours: (GuideTour & { tour: Tour })[];
-  reviews: Review[];
+  reviews: (Review & { tour_name?: string; tour_slug?: string; tour_date?: string })[];
   rating: number;
   review_count: number;
 }
@@ -134,14 +163,38 @@ export async function getGuideBySlug(slug: string, env?: Env): Promise<GuideProf
     if (g) {
       const { data: gts } = await client
         .from('guide_tours').select('*, tour:tours(*)').eq('guide_id', g.id).eq('is_active', true);
-      const { data: revs } = await client
-        .from('reviews').select('*').eq('guide_id', g.id).eq('is_published', true)
-        .order('created_at', { ascending: false });
-      const { rating, review_count } = ratingFor((revs ?? []) as Review[], g.id);
+      const tourIds = (gts ?? []).map((gt: any) => gt.tour?.id).filter(Boolean);
+      const [{ data: revs }, { data: tierPrices }] = await Promise.all([
+        client.from('reviews').select('*, booking:bookings(tour_date, tour:tours(name, slug))').eq('guide_id', g.id).eq('is_published', true)
+          .order('created_at', { ascending: false }),
+        tourIds.length
+          ? client.from('tour_tiers').select('tour_id, price_cents').in('tour_id', tourIds)
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
+      const minimumByTour: Record<string, number> = {};
+      for (const row of tierPrices ?? []) {
+        const price = Number((row as any).price_cents);
+        const tourId = String((row as any).tour_id);
+        if (price > 0 && (!minimumByTour[tourId] || price < minimumByTour[tourId])) {
+          minimumByTour[tourId] = price;
+        }
+      }
+      const pricedTours = (gts ?? []).map((gt: any) => ({
+        ...gt,
+        price_cents: minimumByTour[gt.tour?.id] ?? gt.tour?.min_price_cents ?? 0,
+        tour: gt.tour ? normalizeTour(gt.tour as Tour) : gt.tour,
+      }));
+      const reviewRows = (revs ?? []).map((review: any) => ({
+        ...review,
+        tour_name: review.booking?.tour?.name,
+        tour_slug: review.booking?.tour?.slug,
+        tour_date: review.booking?.tour_date,
+      }));
+      const { rating, review_count } = ratingFor(reviewRows as Review[], g.id);
       return {
         guide: g as Guide,
-        tours: (gts ?? []) as any,
-        reviews: (revs ?? []) as Review[],
+        tours: pricedTours as any,
+        reviews: reviewRows,
         rating, review_count,
       };
     }
@@ -151,7 +204,11 @@ export async function getGuideBySlug(slug: string, env?: Env): Promise<GuideProf
   if (!g) return null;
   const tours = SEED_GUIDE_TOURS
     .filter((gt) => gt.guide_id === g.id && gt.is_active)
-    .map((gt) => ({ ...gt, tour: SEED_TOURS.find((t) => t.id === gt.tour_id)! }));
+    .map((gt) => {
+      const tour = normalizeTour(SEED_TOURS.find((t) => t.id === gt.tour_id)!);
+      const prices = SEED_TIERS.filter((t) => t.tour_id === tour.id).map((t) => t.price_cents);
+      return { ...gt, price_cents: prices.length ? Math.min(...prices) : tour.min_price_cents, tour };
+    });
   const reviews = SEED_REVIEWS.filter((r) => r.guide_id === g.id);
   return { guide: g, tours, reviews, ...ratingFor(SEED_REVIEWS, g.id) };
 }
@@ -193,7 +250,7 @@ export async function getOffering(
         .from('tour_tiers').select('*')
         .eq('tour_id', tour.id).eq('key', tierKey).maybeSingle();
       if (!tier) return null;
-      return { tour: tour as Tour, guide: guide as Guide, price_cents: tier.price_cents, tier: tier as TourTier };
+      return { tour: normalizeTour(tour as Tour), guide: guide as Guide, price_cents: tier.price_cents, tier: tier as TourTier };
     }
     return null;
   }
@@ -205,7 +262,7 @@ export async function getOffering(
   if (!gt) return null;
   const tier = SEED_TIERS.find((t) => t.tour_id === tour.id && t.key === tierKey);
   if (!tier) return null;
-  return { tour, guide, price_cents: tier.price_cents, tier };
+  return { tour: normalizeTour(tour), guide, price_cents: tier.price_cents, tier };
 }
 
 /** A few published 4-5 star reviews for the homepage social-proof section. */

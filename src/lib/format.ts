@@ -31,6 +31,14 @@ export function truncate(text: string, maxLen = 155): string {
   return `${cut.slice(0, cut.lastIndexOf(' '))}…`;
 }
 
+/** Correct an obvious day/night mismatch in legacy package copy. */
+export function formatPackageInclusion(item: string, durationDays: number): string {
+  if (durationDays <= 1) return item;
+  return item.replace(/^(\d+) nights?(?=\s)/i, (match, nights) =>
+    Number(nights) === durationDays ? `${durationDays - 1} nights` : match
+  );
+}
+
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', {
     year: 'numeric', month: 'short', day: 'numeric',

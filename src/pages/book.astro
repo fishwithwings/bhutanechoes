@@ -1,15 +1,15 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { getOffering } from '../lib/data';
-import { formatMoney, formatDuration, difficultyLabel } from '../lib/format';
+import { formatMoney, formatDuration, difficultyLabel, formatPackageInclusion } from '../lib/format';
 import type { TierKey } from '../lib/types';
 
 const env = (Astro.locals as any).runtime?.env;
 const tourSlug  = Astro.url.searchParams.get('tour') ?? '';
 const guideSlug = Astro.url.searchParams.get('guide') ?? '';
-const tierParam = (Astro.url.searchParams.get('tier') ?? 'classic') as TierKey;
+const tierParam = (Astro.url.searchParams.get('tier') ?? 'basic') as TierKey;
 const validTiers: TierKey[] = ['basic', 'classic', 'luxury'];
-const tierKey: TierKey = validTiers.includes(tierParam) ? tierParam : 'classic';
+const tierKey: TierKey = validTiers.includes(tierParam) ? tierParam : 'basic';
 
 const offering = await getOffering(tourSlug, guideSlug, tierKey, env);
 if (!offering) return Astro.redirect('/tours');
@@ -102,7 +102,7 @@ const tierIcon: Record<TierKey, string> = {
     <!-- Summary -->
     <aside class="lg:sticky lg:top-24 lg:self-start">
       <div class="card overflow-hidden">
-        <img src={tour.image_url ?? '/images/placeholder.svg'} alt={tour.name} class="h-36 w-full object-cover" />
+        <img src={tour.image_url ?? '/images/placeholder.svg'} alt={tour.name} onerror="this.onerror=null;this.src='/images/placeholder.svg'" class="h-36 w-full object-cover" />
         <div class="p-6">
           <h2 class="font-serif text-lg font-semibold">{tour.name}</h2>
           <p class="text-xs text-forest/55">{tour.region} · {formatDuration(tour.duration_days)} · {difficultyLabel(tour.difficulty)}</p>
@@ -116,7 +116,7 @@ const tierIcon: Record<TierKey, string> = {
             <ul class="mt-2 space-y-1">
               {tier.includes.slice(0, 5).map((item) => (
                 <li class="flex items-start gap-1.5 text-xs text-forest/65">
-                  <span class="text-gold-dark mt-0.5">✓</span>{item}
+                  <span class="text-gold-dark mt-0.5">✓</span>{formatPackageInclusion(item, tour.duration_days)}
                 </li>
               ))}
               {tier.includes.length > 5 && (

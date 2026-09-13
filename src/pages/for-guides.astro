@@ -14,14 +14,14 @@ const steps = [
   { n: '1', t: 'Create your profile', d: 'Sign up free, fill in your experience, languages, and license number. Takes about 10 minutes.' },
   { n: '2', t: 'Get verified', d: 'Our team checks your TCB license and approves your profile within 48 hours.' },
   { n: '3', t: 'Connect Stripe payouts', d: 'Link your bank account via Stripe so we can pay you after each completed tour.' },
-  { n: '4', t: 'Start welcoming guests', d: 'Select which tours you offer, set your prices, and receive booking requests from travelers.' },
+  { n: '4', t: 'Start welcoming guests', d: 'Select which tours you offer and receive booking requests from travelers. Package prices are kept consistent across the platform.' },
 ];
 const faqs = [
   { q: 'Do I need to be a licensed guide?', a: 'Yes. All guides on Bhutan Echoes must hold a valid Tourism Council of Bhutan (TCB) guide license. We verify every application.' },
   { q: 'How much does it cost to join?', a: 'Nothing upfront. Listing and receiving bookings is completely free. We only earn a small commission when you complete a booking.' },
   { q: 'Can I still work with agencies or take walk-in clients?', a: 'Absolutely. We have no exclusivity requirement. Use Bhutan Echoes alongside your existing work.' },
   { q: 'When do I get paid?', a: 'Automatically via Stripe, typically within 2–5 business days of the tour completion date.' },
-  { q: 'What tours can I offer?', a: 'You choose which of our listed tours you want to offer. Once approved, just select your tours and set your tier prices.' },
+  { q: 'What tours can I offer?', a: 'You choose which listed tours you want to offer. Bhutan Echoes maintains the three package prices so travelers see a consistent amount from discovery through checkout.' },
   { q: 'What if a guest cancels?', a: 'Our cancellation policy protects you. Guests who cancel within 14 days forfeit 50% of the booking fee, which is paid to you.' },
 ];
 const jsonLd = {
@@ -66,7 +66,7 @@ const jsonLd = {
         Guide on your terms.<br />Keep what you earn.
       </h1>
       <p class="mt-6 max-w-xl text-lg leading-relaxed text-cream/80">
-        Bhutan Echoes connects you directly with international travelers — no agency middleman. You set your price, manage your calendar, and own your guest relationships.
+        Bhutan Echoes connects you directly with international travelers. You choose the tours you offer, manage your calendar, and build guest relationships while we keep package pricing consistent.
       </p>
       <div class="mt-8 flex flex-wrap gap-4">
         <a href="/register" class="btn-gold text-base">Apply to guide — it's free</a>
@@ -195,7 +195,7 @@ const jsonLd = {
           {[
             ['Guide payout', '85–90% of booking', '30–50% of booking'],
             ['Upfront cost', 'Free', 'Often a listing or joining fee'],
-            ['Price control', 'You set your prices', 'Agency sets the rate'],
+            ['Clear pricing', 'One published price per package', 'Rates may vary by agent'],
             ['Guest relationship', 'Direct — you own it', 'Agency owns the client'],
             ['Reviews', 'Displayed on your profile', 'Go to the agency, not you'],
             ['Exclusivity', 'None required', 'Often required'],

@@ -1,0 +1,130 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+export const prerender = true;
+
+const minimumMonth = new Date().toISOString().slice(0, 7);
+---
+<Layout
+  title="Plan Your Bhutan Trip with a Local Guide | Bhutan Echoes"
+  description="Tell us your dates, interests, group size and budget. Get a Bhutan itinerary recommendation from our local team within 24 hours."
+>
+  <section class="bg-forest text-cream">
+    <div class="container-x grid gap-10 py-14 md:grid-cols-[1fr_0.8fr] md:items-end md:py-20">
+      <div>
+        <p class="text-sm font-semibold text-gold-light">A local starting point</p>
+        <h1 class="mt-3 max-w-2xl font-serif text-4xl font-bold leading-tight text-cream sm:text-5xl">Tell us what you want from Bhutan.</h1>
+        <p class="mt-5 max-w-xl text-lg leading-relaxed text-cream/75">You don’t need to choose a package first. Share the shape of your trip and we’ll suggest a suitable itinerary and licensed guide.</p>
+      </div>
+      <div class="grid grid-cols-3 gap-4 border-t border-cream/15 pt-6 text-sm md:border-l md:border-t-0 md:pl-8 md:pt-0">
+        <div><strong class="block font-serif text-xl text-cream">24h</strong><span class="text-cream/55">typical reply</span></div>
+        <div><strong class="block font-serif text-xl text-cream">Free</strong><span class="text-cream/55">trip advice</span></div>
+        <div><strong class="block font-serif text-xl text-cream">Local</strong><span class="text-cream/55">Bhutan team</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="container-x grid gap-12 py-12 lg:grid-cols-[1fr_340px] lg:py-16">
+    <form id="plan-form" class="card space-y-5 p-6 sm:p-8">
+      <div>
+        <h2 class="font-serif text-2xl font-semibold">Your trip</h2>
+        <p class="mt-1 text-sm text-forest/60">Approximate answers are completely fine.</p>
+      </div>
+
+      <div class="grid gap-5 sm:grid-cols-2">
+        <div><label class="label" for="plan-name">Your name</label><input class="input" id="plan-name" autocomplete="name" required /></div>
+        <div><label class="label" for="plan-email">Email</label><input class="input" type="email" id="plan-email" autocomplete="email" required /></div>
+      </div>
+      <div class="grid gap-5 sm:grid-cols-2">
+        <div><label class="label" for="plan-month">Preferred month</label><input class="input" type="month" min={minimumMonth} id="plan-month" /></div>
+        <div><label class="label" for="plan-group">Number of travelers</label><input class="input" type="number" min="1" max="20" value="2" id="plan-group" /></div>
+      </div>
+      <div class="grid gap-5 sm:grid-cols-2">
+        <div>
+          <label class="label" for="plan-style">What interests you most?</label>
+          <select class="input" id="plan-style">
+            <option value="Culture and first-time highlights">Culture and first-time highlights</option>
+            <option value="Festivals and living traditions">Festivals and living traditions</option>
+            <option value="Hiking and trekking">Hiking and trekking</option>
+            <option value="Nature and wildlife">Nature and wildlife</option>
+            <option value="Luxury and wellness">Luxury and wellness</option>
+            <option value="A mix — help me decide">A mix — help me decide</option>
+          </select>
+        </div>
+        <div>
+          <label class="label" for="plan-package">Comfort level</label>
+          <select class="input" id="plan-package">
+            <option value="Essential">Essential</option>
+            <option value="Classic" selected>Classic</option>
+            <option value="Luxury">Luxury</option>
+            <option value="Not sure">Not sure</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="label" for="plan-message">What would make the trip special?</label>
+        <textarea class="textarea" id="plan-message" rows="5" required placeholder="Trip length, places you hope to see, preferred pace, dietary needs, or anything you want us to know…"></textarea>
+      </div>
+      <p id="plan-error" class="hidden rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700"></p>
+      <p id="plan-success" class="hidden rounded-xl bg-green-50 px-4 py-3 text-sm text-green-700">Your request is on its way. We’ll reply within 24 hours.</p>
+      <button type="submit" id="plan-submit" class="btn-gold w-full text-base">Get my trip recommendation</button>
+      <p class="text-center text-xs text-forest/45">No payment or account required.</p>
+    </form>
+
+    <aside class="lg:pt-4">
+      <h2 class="font-serif text-2xl font-semibold">What happens next</h2>
+      <ol class="mt-6 space-y-6">
+        <li class="flex gap-4"><span class="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-gold text-sm font-bold text-white">1</span><div><p class="font-semibold text-forest">We read your request</p><p class="mt-1 text-sm leading-relaxed text-forest/60">A local team member checks your dates, interests, and pace.</p></div></li>
+        <li class="flex gap-4"><span class="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-gold text-sm font-bold text-white">2</span><div><p class="font-semibold text-forest">We suggest a route</p><p class="mt-1 text-sm leading-relaxed text-forest/60">You receive a recommended itinerary, package level, and price range.</p></div></li>
+        <li class="flex gap-4"><span class="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-gold text-sm font-bold text-white">3</span><div><p class="font-semibold text-forest">You meet your guide</p><p class="mt-1 text-sm leading-relaxed text-forest/60">Ask questions directly before you decide whether to book.</p></div></li>
+      </ol>
+      <div class="mt-8 rounded-2xl bg-cream-dark p-5 text-sm leading-relaxed text-forest/65">
+        Already know what you want? <a href="/tours" class="font-semibold text-forest underline decoration-gold underline-offset-4">Compare all tours</a>.
+      </div>
+    </aside>
+  </section>
+</Layout>
+
+<script>
+  const form = document.getElementById('plan-form') as HTMLFormElement;
+  const submit = document.getElementById('plan-submit') as HTMLButtonElement;
+  const error = document.getElementById('plan-error')!;
+  const success = document.getElementById('plan-success')!;
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    error.classList.add('hidden');
+    success.classList.add('hidden');
+    submit.disabled = true;
+    submit.textContent = 'Sending…';
+
+    try {
+      const style = (document.getElementById('plan-style') as HTMLSelectElement).value;
+      const notes = (document.getElementById('plan-message') as HTMLTextAreaElement).value.trim();
+      const response = await fetch('/api/inquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: (document.getElementById('plan-name') as HTMLInputElement).value.trim(),
+          email: (document.getElementById('plan-email') as HTMLInputElement).value.trim(),
+          travel_month: (document.getElementById('plan-month') as HTMLInputElement).value,
+          group_size: (document.getElementById('plan-group') as HTMLInputElement).value,
+          package_name: (document.getElementById('plan-package') as HTMLSelectElement).value,
+          tour_name: 'Personal Bhutan trip recommendation',
+          tour_slug: '',
+          message: `Travel style: ${style}\n${notes}`,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Could not send your request.');
+      form.reset();
+      success.classList.remove('hidden');
+    } catch (err: any) {
+      error.textContent = err.message || 'Could not send your request. Please try again.';
+      error.classList.remove('hidden');
+    } finally {
+      submit.disabled = false;
+      submit.textContent = 'Get my trip recommendation';
+    }
+  });
+</script>

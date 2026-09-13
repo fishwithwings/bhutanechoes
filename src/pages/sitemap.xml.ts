@@ -14,6 +14,7 @@ export const GET: APIRoute = async ({ locals }) => {
     '/', '/tours', '/guides', '/about', '/for-guides', '/travel-guide',
     '/travel-guide/bhutan-visa-sdf-fee-explained',
     '/travel-guide/best-time-to-visit-bhutan',
+    '/plan',
   ].map((p) => `
   <url>
     <loc>${base}${p}</loc>
