@@ -242,6 +242,11 @@ const tourJsonLd: Record<string, unknown> = {
               <div><label class="label" for="inq-name">Your name</label><input class="input" id="inq-name" required /></div>
               <div><label class="label" for="inq-email">Your email</label><input class="input" type="email" id="inq-email" required /></div>
             </div>
+            <div>
+              <label class="label" for="inq-whatsapp">WhatsApp number <span class="font-normal text-forest/45">(optional)</span></label>
+              <input class="input" type="tel" id="inq-whatsapp" autocomplete="tel" inputmode="tel" placeholder="+975 17 12 34 56" />
+              <p class="mt-1 text-xs text-forest/45">Include your country code so we can reach you from Bhutan.</p>
+            </div>
             <div class="grid gap-4 sm:grid-cols-3">
               <div><label class="label" for="inq-month">Travel month</label><input class="input" type="month" id="inq-month" /></div>
               <div><label class="label" for="inq-group">Group size</label><input class="input" type="number" min="1" max={tour.max_group_size} value="2" id="inq-group" /></div>
@@ -605,6 +610,7 @@ const tourJsonLd: Record<string, unknown> = {
     inqSubmit.textContent = 'Sending…';
     const name    = (document.getElementById('inq-name') as HTMLInputElement).value.trim();
     const email   = (document.getElementById('inq-email') as HTMLInputElement).value.trim();
+    const whatsapp = (document.getElementById('inq-whatsapp') as HTMLInputElement).value.trim();
     const message = (document.getElementById('inq-msg') as HTMLTextAreaElement).value.trim();
     const travelMonth = (document.getElementById('inq-month') as HTMLInputElement).value;
     const groupSize = (document.getElementById('inq-group') as HTMLInputElement).value;
@@ -613,7 +619,7 @@ const tourJsonLd: Record<string, unknown> = {
       const res = await fetch('/api/inquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, message, travel_month: travelMonth, group_size: groupSize, package_name: packageName, tour_name: tourName, tour_slug: tourSlug }),
+        body: JSON.stringify({ name, email, whatsapp, message, travel_month: travelMonth, group_size: groupSize, package_name: packageName, tour_name: tourName, tour_slug: tourSlug }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to send.');

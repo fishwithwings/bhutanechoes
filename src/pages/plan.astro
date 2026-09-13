@@ -35,6 +35,11 @@ const minimumMonth = new Date().toISOString().slice(0, 7);
         <div><label class="label" for="plan-name">Your name</label><input class="input" id="plan-name" autocomplete="name" required /></div>
         <div><label class="label" for="plan-email">Email</label><input class="input" type="email" id="plan-email" autocomplete="email" required /></div>
       </div>
+      <div>
+        <label class="label" for="plan-whatsapp">WhatsApp number <span class="font-normal text-forest/45">(optional)</span></label>
+        <input class="input" type="tel" id="plan-whatsapp" autocomplete="tel" inputmode="tel" placeholder="+975 17 12 34 56" />
+        <p class="mt-1 text-xs text-forest/45">Include your country code so we can reach you from Bhutan.</p>
+      </div>
       <div class="grid gap-5 sm:grid-cols-2">
         <div><label class="label" for="plan-month">Preferred month</label><input class="input" type="month" min={minimumMonth} id="plan-month" /></div>
         <div><label class="label" for="plan-group">Number of travelers</label><input class="input" type="number" min="1" max="20" value="2" id="plan-group" /></div>
@@ -107,6 +112,7 @@ const minimumMonth = new Date().toISOString().slice(0, 7);
         body: JSON.stringify({
           name: (document.getElementById('plan-name') as HTMLInputElement).value.trim(),
           email: (document.getElementById('plan-email') as HTMLInputElement).value.trim(),
+          whatsapp: (document.getElementById('plan-whatsapp') as HTMLInputElement).value.trim(),
           travel_month: (document.getElementById('plan-month') as HTMLInputElement).value,
           group_size: (document.getElementById('plan-group') as HTMLInputElement).value,
           package_name: (document.getElementById('plan-package') as HTMLSelectElement).value,

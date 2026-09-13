@@ -28,6 +28,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const travelMonth = String(body.travel_month ?? '').trim();
   const groupSize = String(body.group_size ?? '').trim();
   const packageName = String(body.package_name ?? '').trim();
+  const whatsapp = String(body.whatsapp ?? '').trim().slice(0, 40);
+  const whatsappDigits = whatsapp.replace(/\D/g, '');
 
   if (!name)    return bad('Name is required.');
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return bad('Valid email required.');
@@ -49,6 +51,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     travelMonth ? `Travel month: ${travelMonth}` : '',
     groupSize ? `Group size: ${groupSize}` : '',
     packageName ? `Package: ${packageName}` : '',
+    whatsapp ? `WhatsApp: ${whatsapp}` : '',
   ].filter(Boolean);
   const messageWithDetails = details.length ? `${details.join('\n')}\n\n${message}` : message;
   const html = `
@@ -58,6 +61,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     ${travelMonth ? `<p><strong>Travel month:</strong> ${escapeHtml(travelMonth)}</p>` : ''}
     ${groupSize ? `<p><strong>Group size:</strong> ${escapeHtml(groupSize)}</p>` : ''}
     ${packageName ? `<p><strong>Package:</strong> ${escapeHtml(packageName)}</p>` : ''}
+    ${whatsapp ? `<p><strong>WhatsApp:</strong> ${escapeHtml(whatsapp)}${whatsappDigits.length >= 7 ? ` · <a href="https://wa.me/${whatsappDigits}">Open WhatsApp</a>` : ''}</p>` : ''}
     <p><strong>Message:</strong></p>
     <blockquote style="border-left:3px solid #C8860A;padding-left:12px;color:#444">${escapeHtml(message).replace(/\n/g, '<br>')}</blockquote>
     <p style="margin-top:16px"><a href="mailto:${escapeHtml(email)}">Reply to ${escapeHtml(name)}</a></p>
