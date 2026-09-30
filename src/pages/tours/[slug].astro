@@ -1,7 +1,8 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import StarRating from '../../components/StarRating.astro';
-import { getTourBySlug, getGuidesForTour, getTiersForTour } from '../../lib/data';
+import TourCard from '../../components/TourCard.astro';
+import { getTourBySlug, getGuidesForTour, getTiersForTour, getTours } from '../../lib/data';
 import { formatMoney, formatDuration, difficultyLabel, truncate, formatPackageInclusion } from '../../lib/format';
 
 const env = (Astro.locals as any).runtime?.env;
@@ -10,6 +11,14 @@ const tour = await getTourBySlug(slug!, env);
 if (!tour) return Astro.redirect('/404');
 
 const guides: Awaited<ReturnType<typeof getGuidesForTour>> = [];
+
+// Cross-link a few other tours so every tour page has real internal links
+// pointing at /tours/{slug} (not just the sitemap) — helps Google discover
+// and index the full catalogue.
+const allTours = await getTours(env);
+const otherTours = allTours.filter((t) => t.slug !== tour.slug);
+const sameRegion = otherTours.filter((t) => t.region === tour.region);
+const relatedTours = [...sameRegion, ...otherTours.filter((t) => !sameRegion.includes(t))].slice(0, 3);
 const tiers = await getTiersForTour(tour.id, env);
 
 const tierIcons: Record<string, string> = {
@@ -339,6 +348,15 @@ const tourJsonLd: Record<string, unknown> = {
     </aside>
 
   </section>
+
+  {relatedTours.length > 0 && (
+    <section class="container-x pb-16">
+      <h2 class="font-serif text-2xl font-semibold">You might also like</h2>
+      <div class="mt-5 grid gap-5 sm:grid-cols-3">
+        {relatedTours.map((t) => <TourCard tour={t} />)}
+      </div>
+    </section>
+  )}
 </Layout>
 
 {guides.length === 0 && (
